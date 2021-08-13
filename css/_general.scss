@@ -1,5 +1,5 @@
-$boardWidth: "900px";
-$boardHeight: "1300px";
+$boardWidth: 100%;
+$boardHeight: 100%;
 
 *, *::before, *::after {
 	box-sizing: border-box;
@@ -13,10 +13,12 @@ body {
 	margin: 0;
 	background-color: #495057;
 }
-#all {
-    position: relative;
+#all, #container, #background, #overlay, #canvas {
     width:$boardWidth;
     height:$boardHeight;
+    position: fixed;
+    top:0px;
+    left:0px;
 }
 #container {
 	line-height: 0;
