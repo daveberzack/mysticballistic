@@ -4,6 +4,7 @@
 
 html, body {
   height: 100%;
+  position: fixed;
 }
 
 body {
@@ -14,8 +15,8 @@ body {
 
 #all {
   position: relative;
-  width: "768px";
-  height: "1024px";
+  width: "900px";
+  height: "1300px";
 }
 
 #container {
@@ -30,13 +31,13 @@ body {
   left: 0;
   z-index: 1;
   background: #333333;
-  width: "768px";
-  height: "1024px";
+  width: "900px";
+  height: "1300px";
 }
 
 #canvas {
-  width: "768px";
-  height: "1024px";
+  width: "900px";
+  height: "1300px";
   overflow: hidden;
   border-radius: 8px;
   transform: translateY(0);
@@ -47,8 +48,8 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  width: "768px";
-  height: "1024px";
+  width: "900px";
+  height: "1300px";
   z-index: 3;
 }
 

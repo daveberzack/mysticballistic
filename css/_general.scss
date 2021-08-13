@@ -1,11 +1,12 @@
-$boardWidth: "768px";
-$boardHeight: "1024px";
+$boardWidth: "900px";
+$boardHeight: "1300px";
 
 *, *::before, *::after {
 	box-sizing: border-box;
 }
 html, body {
 	height: 100%;
+    position: fixed;
 }
 body {
 	display: flex;
