@@ -1,0 +1,49 @@
+$boardWidth: "768px";
+$boardHeight: "1024px";
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+html, body {
+	height: 100%;
+}
+body {
+	display: flex;
+	margin: 0;
+	background-color: #495057;
+}
+#all {
+    position: relative;
+    width:$boardWidth;
+    height:$boardHeight;
+}
+#container {
+	line-height: 0;
+    z-index: 2;
+    position: absolute;
+}
+#background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    background: #333333;
+    width: $boardWidth;
+    height: $boardHeight;
+}
+#canvas {
+	width: $boardWidth;
+    height: $boardHeight;
+	overflow: hidden;
+    border-radius: 8px;
+    transform: translateY(0);
+    z-index: 2;
+}
+#overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+	width: $boardWidth;
+    height: $boardHeight;
+    z-index: 3;
+}

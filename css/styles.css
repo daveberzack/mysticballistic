@@ -1,171 +1,197 @@
 *, *::before, *::after {
-	box-sizing: border-box;
+  box-sizing: border-box;
 }
+
 html, body {
-	height: 100%;
+  height: 100%;
 }
+
 body {
-	display: flex;
-	justify-content: center;
-	margin: 0;
-	background-color: #495057;
+  display: flex;
+  margin: 0;
+  background-color: #495057;
 }
+
 #all {
-    position: relative;
-    width:500px;
-    height:800px;
+  position: relative;
+  width: "768px";
+  height: "1024px";
 }
+
 #container {
-	line-height: 0;
-    z-index: 2;
-    position: absolute;
+  line-height: 0;
+  z-index: 2;
+  position: absolute;
 }
 
 #background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 1;
-    background: #333333;
-    width: 500px;
-    height: 800px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  background: #333333;
+  width: "768px";
+  height: "1024px";
 }
-#target {
-    border-radius: 999px;
-    width: 250;
-    height: 250;
-    position: absolute;
-    top: 275px;
-    left: 125px;
-    background-color: #555555;
-    overflow: hidden;
-}
+
 #canvas {
-	width: 500px;
-    height: 800px;
-	overflow: hidden;
-    border-radius: 8px;
-    transform: translateY(0);
-    z-index: 2;
+  width: "768px";
+  height: "1024px";
+  overflow: hidden;
+  border-radius: 8px;
+  transform: translateY(0);
+  z-index: 2;
 }
 
 #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-	width: 500px;
-    height: 800px;
-    z-index: 3;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: "768px";
+  height: "1024px";
+  z-index: 3;
 }
+
 .button {
-    position:absolute;
-    width: 40px;
-    height: 20px;
-    background: #cccccc;
+  position: absolute;
+  width: 40px;
+  height: 20px;
+  background: #cccccc;
 }
+
 #launchBall_0_0 {
-    left:5px; 
-    top:5px;
+  left: 5px;
+  top: 5px;
 }
+
 #launchBall_0_1 {
-    left:55px; 
-    top:5px;
+  left: 55px;
+  top: 5px;
 }
+
 #launchBall_0_2 {
-    left:105px; 
-    top:5px;
+  left: 105px;
+  top: 5px;
 }
+
 #launchBall_0_3 {
-    left:155px; 
-    top:5px;
+  left: 155px;
+  top: 5px;
 }
+
 #triggerBall_0_0 {
-    left:5px; 
-    top:35px;
+  left: 5px;
+  top: 35px;
 }
+
 #triggerBall_0_1 {
-    left: 55px;
-    top:35px;
+  left: 55px;
+  top: 35px;
 }
+
 #triggerBall_0_2 {
-    left: 105px;
-    top:33px;
+  left: 105px;
+  top: 33px;
 }
+
 #triggerBall_0_3 {
-    left: 155px;
-    top:33px;
+  left: 155px;
+  top: 33px;
 }
+
 #launchBall_1_0 {
-    right:5px; 
-    bottom:5px;
+  right: 5px;
+  bottom: 5px;
 }
+
 #launchBall_1_1 {
-    right:55px; 
-    bottom:5px;
+  right: 55px;
+  bottom: 5px;
 }
+
 #launchBall_1_2 {
-    right:105px; 
-    bottom:5px;
+  right: 105px;
+  bottom: 5px;
 }
+
 #launchBall_1_3 {
-    right:155px; 
-    bottom:5px;
+  right: 155px;
+  bottom: 5px;
 }
+
 #triggerBall_1_0 {
-    right:5px; 
-    bottom:35px;
+  right: 5px;
+  bottom: 35px;
 }
+
 #triggerBall_1_1 {
-    right: 55px;
-    bottom:35px;
+  right: 55px;
+  bottom: 35px;
 }
+
 #triggerBall_1_2 {
-    right: 105px;
-    bottom:33px;
+  right: 105px;
+  bottom: 33px;
 }
+
 #triggerBall_1_3 {
-    right: 155px;
-    bottom:33px;
+  right: 155px;
+  bottom: 33px;
 }
 
 .joystick {
-    position: absolute;
-    width: 100px;
-    height: 100px;
-    overflow: hidden;
-    border-radius: 999px;
-    background: #555555;
-}
-#joystick_0 {
-    right: 40px;
-    top: 10px;
-}
-#joystick_1 {
-    left: 40px;
-    bottom: 10px;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #555555;
 }
 
+#joystick_0 {
+  right: 40px;
+  top: 10px;
+}
+
+#joystick_1 {
+  left: 40px;
+  bottom: 10px;
+}
 
 .score {
-    position: absolute;
-    color: #FFFFFF;
-    font-size: 2em;
+  position: absolute;
+  color: #FFFFFF;
+  font-size: 2em;
 }
+
 #score_0 {
-    right: 160px;
-    top: 0px;
+  right: 160px;
+  top: 0px;
 }
+
 #score_1 {
-    left: 160px;
-    bottom: 0px;
+  left: 160px;
+  bottom: 0px;
 }
 
 #message {
-    position: absolute;
-    text-align: center;
-    top: 200px;
-    left: 0px;
-    width: 100%;
-    color: #FFFFFF;
-
+  position: absolute;
+  text-align: center;
+  top: 200px;
+  left: 0px;
+  width: 100%;
+  color: #FFFFFF;
 }
+
+#target {
+  border-radius: 999px;
+  width: 250;
+  height: 250;
+  position: absolute;
+  top: 275px;
+  left: 125px;
+  background-color: #555555;
+  overflow: hidden;
+}
+
+/*# sourceMappingURL=styles.css.map */

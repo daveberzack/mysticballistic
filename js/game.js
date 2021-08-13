@@ -39,8 +39,8 @@
         },
     ];
     const BOARD = {
-        HEIGHT: 800,
-        WIDTH: 500,
+        HEIGHT: 1024,
+        WIDTH: 768,
         HORIZONTAL_MARGIN: 10,
         VERTICAL_MARGIN: 70,
         AIM_RADIUS: 80,
