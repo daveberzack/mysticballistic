@@ -1,92 +1,98 @@
 (() => {
-    const ACTION = {
-        LAUNCH: 0,
-        TRIGGER: 1   
-    }
-    const COLOR = {
-        WALL: "#222222",
-        BALL1: "#FF0000",
-        BALL2: "#0000FF",
-    }
-    const BALL_TYPE = [
-        {
-            name: "Air",
-            radius: 8,
-            density: 0.0005,
-            friction: .025,
-            maxVelocity: 1, 
-        },
-        {
-            name: "Water",
-            radius: 10,
-            density: 0.001,
-            friction: .03,
-            maxVelocity: 1,
-        },
-        {
-            name: "Earth",
-            radius: 16,
-            density: 0.0009,
-            friction: .05,
-            maxVelocity: 1,
-        },
-        {
-            name:"Fire",
-            radius: 10,
-            density: 0.001,
-            friction: .03,
-            maxVelocity: 1,
-        },
-    ];
-    const BOARD = {
-        HEIGHT: 1024,
-        WIDTH: 768,
-        HORIZONTAL_MARGIN: 10,
-        VERTICAL_MARGIN: 70,
-        AIM_RADIUS: 80,
-    }
-
-    let runCounter=0;
+    let ACTION, COLOR, BALL_TYPE, BOARD
+    let runCounter, players, goals;
 	let canvas, engine, render, runner;
-	let players = [
-        {
-            index: 0,
-            ballColor: COLOR.BALL1,
-            launchX: 410,
-            launchY: 130,
-            aimCenterX: 410,
-            aimCenterY: 60,
-            balls: [null, null, null, null],
-            score: 0,
-            actionMode: 0,
-            actionTarget: null,
-            isAiming: false,
-        },
-        {
-            index: 1,
-            ballColor: COLOR.BALL2,
-            launchX: 90,
-            launchY: 670,
-            aimCenterX: 90,
-            aimCenterY: 750,
-            balls: [null, null, null, null],
-            score: 0,
-            actionMode: 0,
-            actionTarget: null,
-            isAiming: false,
-        }
-    ];
-    let goals = [];
 
 
 // ================ INITIALIZE GAME ====================
 	function init() {
+        initValues();
         initEngine();
         initLevel();
         initHandlers();
         setInterval(run, 50);
 	}
 
+    function initValues() {
+        ACTION = {
+            LAUNCH: 0,
+            TRIGGER: 1   
+        }
+        COLOR = {
+            WALL: "#222222",
+            BALL1: "#FF0000",
+            BALL2: "#0000FF",
+        }
+        BALL_TYPE = [
+            {
+                name: "Air",
+                radius: 8,
+                density: 0.0005,
+                friction: .025,
+                maxVelocity: 1, 
+            },
+            {
+                name: "Water",
+                radius: 10,
+                density: 0.001,
+                friction: .03,
+                maxVelocity: 1,
+            },
+            {
+                name: "Earth",
+                radius: 16,
+                density: 0.0009,
+                friction: .05,
+                maxVelocity: 1,
+            },
+            {
+                name:"Fire",
+                radius: 10,
+                density: 0.001,
+                friction: .03,
+                maxVelocity: 1,
+            },
+        ];
+
+        BOARD = {
+            HEIGHT: $(window).innerHeight(),
+            WIDTH: $(window).innerWidth(),
+            HORIZONTAL_MARGIN: 10,
+            VERTICAL_MARGIN: 150,
+            AIM_RADIUS: 100,
+        }
+    
+        runCounter=0;
+        players = [
+            {
+                index: 0,
+                ballColor: COLOR.BALL1,
+                launchX: 225,
+                launchY: 225,
+                aimCenterX: 110,
+                aimCenterY: 110,
+                balls: [null, null, null, null],
+                score: 0,
+                actionMode: 0,
+                actionTarget: null,
+                isAiming: false,
+            },
+            {
+                index: 1,
+                ballColor: COLOR.BALL2,
+                launchX: BOARD.WIDTH-225,
+                launchY: BOARD.HEIGHT-225,
+                aimCenterX: BOARD.WIDTH-110,
+                aimCenterY: BOARD.HEIGHT-110,
+                balls: [null, null, null, null],
+                score: 0,
+                actionMode: 0,
+                actionTarget: null,
+                isAiming: false,
+            }
+        ];
+        goals = [];
+    }
     function initEngine() {
 
 		engine = Matter.Engine.create();
@@ -135,7 +141,7 @@
             let myOffset = $("#overlay").offset();
             let mX = e.pageX - myOffset.left;
             let mY = e.pageY - myOffset.top;
-            //console.log("mouse @ "+mX+","+mY);
+            console.log("mouse @ "+mX+","+mY);
             if ( getDistance(mX, mY, players[0].aimCenterX, players[0].aimCenterY) < BOARD.AIM_RADIUS) {
                 players[0].isAiming = true;
             }
@@ -221,6 +227,10 @@
 			addWall(0, BOARD.HEIGHT-BOARD.VERTICAL_MARGIN, BOARD.WIDTH, BOARD.VERTICAL_MARGIN), //bottom
 			addWall(0, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT), //left
 			addWall(BOARD.WIDTH-BOARD.HORIZONTAL_MARGIN, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT), //left
+			addRoundWall(110, 110, 120), //joystick0
+			addWall(0, 0, 110, 230), //joystick0 to edge
+			addRoundWall(BOARD.WIDTH-110, BOARD.HEIGHT-110, 120), //joystick1
+			addWall(BOARD.WIDTH-110, BOARD.HEIGHT-230, 110, 230), //joystick1 to edge
 		]);
 
         goals.push({
@@ -261,6 +271,12 @@
 			render: { fillStyle: COLOR.WALL }
 		});
 	}
+	function addRoundWall(x, y, r) {
+		return Matter.Bodies.circle(x, y, r, {
+			isStatic: true,
+			render: { fillStyle: COLOR.WALL }
+		});
+	}
 
 // ================ UTILITY FUNCTIONS ====================
 
@@ -275,7 +291,9 @@
     }
 
 // ================ CALL INIT ====================
-
-	window.addEventListener('load', init, false);
+    $( document ).ready(function() {
+        init();
+    });
+//	window.addEventListener('load', init, false);
 
 })();

@@ -26,27 +26,14 @@ body {
     position: absolute;
 }
 #background {
-    position: absolute;
-    top: 0;
-    left: 0;
     z-index: 1;
-    background: #333333;
-    width: $boardWidth;
-    height: $boardHeight;
 }
 #canvas {
-	width: $boardWidth;
-    height: $boardHeight;
 	overflow: hidden;
     border-radius: 8px;
     transform: translateY(0);
     z-index: 2;
 }
 #overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-	width: $boardWidth;
-    height: $boardHeight;
     z-index: 3;
 }

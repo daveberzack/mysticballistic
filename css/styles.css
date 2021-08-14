@@ -28,18 +28,10 @@ body {
 }
 
 #background {
-  position: absolute;
-  top: 0;
-  left: 0;
   z-index: 1;
-  background: #333333;
-  width: 100%;
-  height: 100%;
 }
 
 #canvas {
-  width: 100%;
-  height: 100%;
   overflow: hidden;
   border-radius: 8px;
   transform: translateY(0);
@@ -47,118 +39,70 @@ body {
 }
 
 #overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
   z-index: 3;
 }
 
-.button {
+.controls {
   position: absolute;
-  width: 40px;
-  height: 20px;
+  width: 100%;
+}
+
+#controls_0 {
+  top: 0;
+  left: 0;
+  -webkit-transform: rotate(180deg);
+  -moz-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  -o-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+#controls_1 {
+  left: 0px;
+  bottom: 0;
+}
+
+.controls .button {
+  position: absolute;
+  width: 60px;
+  height: 60px;
   background: #cccccc;
 }
 
-#launchBall_0_0 {
-  left: 5px;
-  top: 5px;
+.controls .b0 {
+  left: 220px;
 }
 
-#launchBall_0_1 {
-  left: 55px;
-  top: 5px;
+.controls .b1 {
+  left: 150px;
 }
 
-#launchBall_0_2 {
-  left: 105px;
-  top: 5px;
+.controls .b2 {
+  left: 80px;
 }
 
-#launchBall_0_3 {
-  left: 155px;
-  top: 5px;
+.controls .b3 {
+  left: 10px;
 }
 
-#triggerBall_0_0 {
-  left: 5px;
-  top: 35px;
+.controls .trigger {
+  bottom: 80px;
 }
 
-#triggerBall_0_1 {
-  left: 55px;
-  top: 35px;
-}
-
-#triggerBall_0_2 {
-  left: 105px;
-  top: 33px;
-}
-
-#triggerBall_0_3 {
-  left: 155px;
-  top: 33px;
-}
-
-#launchBall_1_0 {
-  right: 5px;
-  bottom: 5px;
-}
-
-#launchBall_1_1 {
-  right: 55px;
-  bottom: 5px;
-}
-
-#launchBall_1_2 {
-  right: 105px;
-  bottom: 5px;
-}
-
-#launchBall_1_3 {
-  right: 155px;
-  bottom: 5px;
-}
-
-#triggerBall_1_0 {
-  right: 5px;
-  bottom: 35px;
-}
-
-#triggerBall_1_1 {
-  right: 55px;
-  bottom: 35px;
-}
-
-#triggerBall_1_2 {
-  right: 105px;
-  bottom: 33px;
-}
-
-#triggerBall_1_3 {
-  right: 155px;
-  bottom: 33px;
+.controls .launch {
+  bottom: 10px;
 }
 
 .joystick {
   position: absolute;
-  width: 100px;
-  height: 100px;
+  width: 200px;
+  height: 200px;
   overflow: hidden;
   border-radius: 999px;
   background: #555555;
-}
-
-#joystick_0 {
-  right: 40px;
-  top: 10px;
-}
-
-#joystick_1 {
-  left: 40px;
+  right: 10px;
   bottom: 10px;
+  background: #cccccc;
 }
 
 .score {
@@ -188,11 +132,11 @@ body {
 
 #target {
   border-radius: 999px;
-  width: 250;
-  height: 250;
+  width: 25%;
+  height: 25%;
   position: absolute;
-  top: 275px;
-  left: 125px;
+  top: 37.5%;
+  left: 37.5%;
   background-color: #555555;
   overflow: hidden;
 }
