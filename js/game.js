@@ -6,6 +6,7 @@
 
 // ================ INITIALIZE GAME ====================
 	function init() {
+        log("start");
         initValues();
         initEngine();
         initLevel();
@@ -174,20 +175,17 @@
     }
 
 
-    function start_handler(ev) {
-        ev.preventDefault();
-        log("touchStart");
+    function startJoystick(player, x, y) {
+        log("start:"+player+" - "+x+","+y);
     }
-    function move_handler(ev) {
-        ev.preventDefault();
-        log("touchMove");
+    function endJoystick(player, x, y) {
+        log("end:"+player+" - "+x+","+y);
     }
-    function end_handler(ev) {
-        ev.preventDefault();
-        log("touchEnd");
+    function moveJoystick(player, x, y) {
+        log("move:"+player+" - "+x+","+y);
     }
     function initTouchHandlers() {
-        $(".button.trigger").click((e)=>{
+        $('.button.trigger').bind('touchstart', function(e){
             let player = players[ $(e.target).data('player') ];
             let ballIndex = $(e.target).data('ball');
             let whichBall = player.balls[ballIndex];
@@ -201,17 +199,25 @@
                 player.actionTarget = whichBall;
             }
         })
-        $(".button.launch").click((e)=>{
+        $('.button.launch').bind('touchstart', function(e){
             let player = players[ $(e.target).data('player') ];
             player.actionMode = ACTION.LAUNCH;
             player.actionTarget = player.balls[ $(e.target).data('ball') ];
         })
 
-        var el=document.getElementById("joystick_0");
-        el.ontouchstart = start_handler;
-        el.ontouchmove = move_handler;
-        el.ontouchcancel = end_handler;
-        el.ontouchend = end_handler;
+
+        $('.joystick').bind('touchstart', function(e){
+            e.preventDefault();
+            startJoystick(e.data("player"), e.screenX, e.screenY);
+        })
+        $('.joystick').bind('touchmove', function(e){
+            e.preventDefault();
+            moveJoystick(e.data("player"), e.screenX, e.screenY);
+        })
+        $('.joystick').bind('touchend touchcancel', function(e){
+            e.preventDefault();
+            endJoystick(e.data("player"), e.screenX, e.screenY);
+        })
     }
 
 // ================ GAME LOOP ====================
@@ -363,6 +369,9 @@
     function log(msg){
         $("#debug").append(msg+"<br/>")
     }
+    $("#debug").click( ()=> {
+        $("#debug").html("");
+    })
 
 // ================ CALL INIT ====================
     $( document ).ready(function() {
