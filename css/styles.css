@@ -166,6 +166,15 @@ body {
   color: #FFFFFF;
 }
 
+#debug {
+  position: absolute;
+  left: 20px;
+  top: 230px;
+  background: #FFFFFF66;
+  padding: 10px;
+  color: #000000;
+}
+
 #goal {
   border-radius: 999px;
   position: absolute;

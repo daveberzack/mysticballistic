@@ -9,7 +9,7 @@
         initValues();
         initEngine();
         initLevel();
-        initHandlers();
+        initTouchHandlers();
         setInterval(run, 50);
 	}
 
@@ -143,7 +143,7 @@
             let myOffset = $("#overlay").offset();
             let mX = e.pageX - myOffset.left;
             let mY = e.pageY - myOffset.top;
-            console.log("mouse @ "+mX+","+mY);
+            //console.log("mouse @ "+mX+","+mY);
             if ( getDistance(mX, mY, players[0].aimCenterX, players[0].aimCenterY) < BOARD.AIM_RADIUS) {
                 players[0].isAiming = true;
             }
@@ -173,6 +173,47 @@
         })
     }
 
+
+    function start_handler(ev) {
+        ev.preventDefault();
+        log("touchStart", ev);
+    }
+    function move_handler(ev) {
+        ev.preventDefault();
+        log("touchMove", ev);
+    }
+    function end_handler(ev) {
+        ev.preventDefault();
+        log("touchEnd", ev);
+    }
+    function initTouchHandlers() {
+        $(".button.trigger").click((e)=>{
+            let player = players[ $(e.target).data('player') ];
+            let ballIndex = $(e.target).data('ball');
+            let whichBall = player.balls[ballIndex];
+            if (whichBall===null) {
+                addBall(player, ballIndex);
+                player.actionMode = ACTION.LAUNCH;
+                player.actionTarget = player.balls[ballIndex];
+            }
+            else {
+                player.actionMode = ACTION.TRIGGER;
+                player.actionTarget = whichBall;
+            }
+        })
+        $(".button.launch").click((e)=>{
+            let player = players[ $(e.target).data('player') ];
+            player.actionMode = ACTION.LAUNCH;
+            player.actionTarget = player.balls[ $(e.target).data('ball') ];
+        })
+
+        var el=document.getElementById("joystick_0");
+        el.ontouchstart = start_handler;
+        el.ontouchmove = move_handler;
+        el.ontouchcancel = end_handler;
+        el.ontouchend = end_handler;
+    }
+
 // ================ GAME LOOP ====================
 
 	function run() {
@@ -187,8 +228,6 @@
     function updateScores() {
         scoreGoals();
         checkForWin();
-        console.log("p0:"+players[0].score );
-        console.log("p1:"+players[1].score);
         $("#score_0 .bar").css({"height":players[0].score*BOARD.SCORE_BAR_HEIGHT/100});
         $("#score_1 .bar").css({"height":players[1].score*BOARD.SCORE_BAR_HEIGHT/100});
     }
@@ -319,6 +358,10 @@
 
     function getAngle(x1, y1, x2, y2){
         return angleRadians = Math.atan2(y2 - y1, x2 - x1);
+    }
+
+    function log(msg){
+        $("#debug").append(msg+"<br/>")
     }
 
 // ================ CALL INIT ====================
