@@ -208,15 +208,15 @@
 
         $('.joystick').bind('touchstart', function(e){
             e.preventDefault();
-            startJoystick(e.data("player"), e.screenX, e.screenY);
+            startJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
         })
         $('.joystick').bind('touchmove', function(e){
             e.preventDefault();
-            moveJoystick(e.data("player"), e.screenX, e.screenY);
+            moveJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
         })
         $('.joystick').bind('touchend touchcancel', function(e){
             e.preventDefault();
-            endJoystick(e.data("player"), e.screenX, e.screenY);
+            endJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
         })
     }
 
