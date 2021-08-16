@@ -29,28 +29,28 @@
                 radius: 10,
                 density: 0.0005,
                 friction: .025,
-                maxVelocity: 11, 
+                maxVelocity: 15, 
             },
             {
                 name: "water",
                 radius: 15,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 7,
+                maxVelocity: 10,
             },
             {
                 name: "earth",
                 radius: 24,
                 density: 0.0008,
                 friction: .045,
-                maxVelocity: 7,
+                maxVelocity: 10,
             },
             {
                 name:"fire",
                 radius: 15,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 7,
+                maxVelocity: 10,
             },
         ];
 
