@@ -20,37 +20,37 @@
         }
         COLOR = {
             WALL: "#222222",
-            BALL1: "#FF0000",
-            BALL2: "#0000FF",
+            WALL0: "#FFFFFF",
+            WALL1: "#000000"
         }
         BALL_TYPE = [
             {
-                name: "Air",
-                radius: 8,
+                name: "air",
+                radius: 10,
                 density: 0.0005,
                 friction: .025,
-                maxVelocity: 1, 
+                maxVelocity: 11, 
             },
             {
-                name: "Water",
-                radius: 10,
+                name: "water",
+                radius: 15,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 1,
+                maxVelocity: 7,
             },
             {
-                name: "Earth",
-                radius: 16,
-                density: 0.0009,
-                friction: .05,
-                maxVelocity: 1,
+                name: "earth",
+                radius: 24,
+                density: 0.0008,
+                friction: .045,
+                maxVelocity: 7,
             },
             {
-                name:"Fire",
-                radius: 10,
+                name:"fire",
+                radius: 15,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 1,
+                maxVelocity: 7,
             },
         ];
 
@@ -60,6 +60,8 @@
             HORIZONTAL_MARGIN: 10,
             VERTICAL_MARGIN: 150,
             AIM_RADIUS: 100,
+            SCORE_BAR_HEIGHT: 115,
+            GOAL_RADIUS: 125,
         }
     
         runCounter=0;
@@ -185,8 +187,10 @@
     function updateScores() {
         scoreGoals();
         checkForWin();
-        $("#score_0").html(players[0].score);
-        $("#score_1").html(players[1].score);
+        console.log("p0:"+players[0].score );
+        console.log("p1:"+players[1].score);
+        $("#score_0 .bar").css({"height":players[0].score*BOARD.SCORE_BAR_HEIGHT/100});
+        $("#score_1 .bar").css({"height":players[1].score*BOARD.SCORE_BAR_HEIGHT/100});
     }
 
     function checkForWin(){
@@ -200,21 +204,24 @@
 
     function scoreGoals(){
         goals.forEach((goal) => {
-            let player0Balls = players[0].balls.reduce( function(total, ball){
+            let player0BallsIn = players[0].balls.reduce( function(total, ball){
                 let output = total;
-                if (ball!==null && getDistance(goal.x, goal.y, ball.position.x, ball.position.y) < goal.r) output++;
+                if (ball!==null) {
+                    let body = ball.body;
+                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r) output++;    
+                }
                 return output;
             }, 0);
-            let player1Balls = players[1].balls.reduce( function(total, ball){
+            let player1BallsIn = players[1].balls.reduce( function(total, ball){
                 let output = total;
-                if (ball!==null && getDistance(goal.x, goal.y, ball.position.x, ball.position.y) < goal.r) output++;
+                if (ball!==null) {
+                    let body = ball.body;
+                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r) output++;
+                }
                 return output;
             }, 0);
-
-            // if (player0Balls > player1Balls) players[0].score++;
-            // else if (player0Balls < player1Balls) players[1].score++;
-            players[0].score += player0Balls;
-            players[1].score += player1Balls;
+            players[0].score = Math.min(100, players[0].score + player0BallsIn);
+            players[1].score = Math.min(100, players[1].score + player1BallsIn);
         })
     }
 
@@ -223,58 +230,82 @@
 
     function initLevel(){
 		Matter.World.add(engine.world, [
-			addWall(0, 0, BOARD.WIDTH, BOARD.VERTICAL_MARGIN), //top
-			addWall(0, BOARD.HEIGHT-BOARD.VERTICAL_MARGIN, BOARD.WIDTH, BOARD.VERTICAL_MARGIN), //bottom
-			addWall(0, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT), //left
-			addWall(BOARD.WIDTH-BOARD.HORIZONTAL_MARGIN, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT), //left
-			addRoundWall(110, 110, 120), //joystick0
-			addWall(0, 0, 110, 230), //joystick0 to edge
-			addRoundWall(BOARD.WIDTH-110, BOARD.HEIGHT-110, 120), //joystick1
-			addWall(BOARD.WIDTH-110, BOARD.HEIGHT-230, 110, 230), //joystick1 to edge
+			addWall(0, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT, COLOR.WALL0), //left
+			addWall(BOARD.WIDTH-BOARD.HORIZONTAL_MARGIN, 0, BOARD.HORIZONTAL_MARGIN, BOARD.HEIGHT, COLOR.WALL1), //right
+			addWall(0, 0, BOARD.WIDTH, BOARD.VERTICAL_MARGIN, COLOR.WALL0), //top
+			addWall(0, BOARD.HEIGHT-BOARD.VERTICAL_MARGIN, BOARD.WIDTH, BOARD.VERTICAL_MARGIN, COLOR.WALL1), //bottom
+			addRoundWall(110, 110, 120, COLOR.WALL0), //joystick0
+			addWall(0, 0, 110, 230, COLOR.WALL0), //joystick0 to edge
+			addRoundWall(BOARD.WIDTH-110, BOARD.HEIGHT-110, 120, COLOR.WALL1), //joystick1
+			addWall(BOARD.WIDTH-110, BOARD.HEIGHT-230, 110, 230, COLOR.WALL1), //joystick1 to edge
 		]);
 
         goals.push({
-            x: 250,
-            y: 400,
-            r: 125
+            x: BOARD.WIDTH/2,
+            y: BOARD.HEIGHT/2,
+            r: BOARD.GOAL_RADIUS
+        })
+        $("#goal").css({
+            "top":BOARD.HEIGHT/2 - BOARD.GOAL_RADIUS,
+            "left":BOARD.WIDTH/2 - BOARD.GOAL_RADIUS,
+            "width":BOARD.GOAL_RADIUS*2,
+            "height":BOARD.GOAL_RADIUS*2,
         })
     }
 
     function launchBall(player, mx, my){
-        vx = (player.aimCenterX - mx)/5;
-        vy = (player.aimCenterY - my)/5;
-        if (vx<-10) vx = -10;
-        if (vx>10) vx = 10;
-        if (vy<-10) vy = -10;
-        if (vx>10) vy = 10;
-        Matter.Body.setVelocity( player.actionTarget, {x: vx, y: vy});
+        let distance = getDistance(player.aimCenterX, player.aimCenterY, mx, my);
+        let percent = Math.min(distance/BOARD.AIM_RADIUS, 1);
+        let velocity = player.actionTarget.type.maxVelocity * percent;
+        let angle = getAngle(player.aimCenterX, player.aimCenterY, mx, my);
+        console.log("V:"+velocity);
+        console.log("A:"+angle);
+
+        let vx = -velocity * Math.cos(angle);
+        let vy = -velocity * Math.sin(angle);
+
+        // vx = (mx - player.aimCenterX)/5;
+        // vy = (player.aimCenterY - my)/5;
+        // if (vx<-10) vx = -10;
+        // if (vx>10) vx = 10;
+        // if (vy<-10) vy = -10;
+        // if (vx>10) vy = 10;
+        Matter.Body.setVelocity( player.actionTarget.body, {x: vx, y: vy});
+
         player.isAiming = false;
     }
 
     function addBall(player, ballIndex){
         let type = BALL_TYPE[ballIndex];
-        let ball = Matter.Bodies.circle(player.launchX, player.launchY, type.radius, {
+        let body = Matter.Bodies.circle(player.launchX, player.launchY, type.radius, {
 			isStatic: false,
 			restitution: 1,
             frictionAir: type.friction, 
             density: type.density,
-			render: { fillStyle: player.ballColor }
+            render: {
+                sprite: {
+                    texture: './img/'+type.name+player.index+'.png',
+                    xScale: (type.radius*2)/160,
+                    yScale: (type.radius*2)/160
+                }
+            }
 		});
-		Matter.World.add(engine.world, ball);
+		Matter.World.add(engine.world, body);
+        let ball = {type: type, body: body};
         player.balls[ballIndex] = ball;
     }
 
-	function addWall(x, y, width, height) {
+	function addWall(x, y, width, height, color) {
 		return Matter.Bodies.rectangle(x+width/2, y+height/2, width, height,  {
 			isStatic: true,
 			render: { visible: false },
-			render: { fillStyle: COLOR.WALL }
+			render: { fillStyle: color }
 		});
 	}
-	function addRoundWall(x, y, r) {
+	function addRoundWall(x, y, r, color) {
 		return Matter.Bodies.circle(x, y, r, {
 			isStatic: true,
-			render: { fillStyle: COLOR.WALL }
+			render: { fillStyle: color }
 		});
 	}
 

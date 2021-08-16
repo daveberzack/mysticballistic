@@ -20,7 +20,7 @@
     position:absolute;
     width: 60px;
     height: 60px;
-    background: #cccccc;
+    background-size: cover;
 }
 .controls .b0 {
     left: 220px;
@@ -35,35 +35,64 @@
     left: 10px;
 }
 .controls .trigger {
-    bottom: 80px;
-}
-.controls .launch {
     bottom: 10px;
 }
+.controls .launch {
+    bottom: 75px;
+}
+
+.controls .launch.b0 {
+    background-image: url("../img/air_arrow.png");
+}
+.controls .trigger.b0 {
+    background-image: url("../img/air.png");
+}
+.controls .launch.b1 {
+    background-image: url("../img/water_arrow.png");
+}
+.controls .trigger.b1 {
+    background-image: url("../img/water.png");
+}
+.controls .launch.b2 {
+    background-image: url("../img/earth_arrow.png");
+}
+.controls .trigger.b2 {
+    background-image: url("../img/earth.png");
+}
+.controls .launch.b3 {
+    background-image: url("../img/fire_arrow.png");
+}
+.controls .trigger.b3 {
+    background-image: url("../img/fire.png");
+}
+
 .joystick {
     position: absolute;
     width: 200px;
     height: 200px;
     overflow: hidden;
     border-radius: 999px;
-    background: #555555;
+    background: #999999;
     right: 10px;
     bottom: 10px;
-    background: #cccccc;
 }
 
 .score {
     position: absolute;
-    color: #FFFFFF;
-    font-size: 2em;
+    background: #99999922;
+    bottom: 20px;
+    left: 340px;
+    height: 115px;
+    width: 70px;
+    overflow: hidden;
 }
-#score_0 {
-    right: 160px;
-    top: 0px;
-}
-#score_1 {
-    left: 160px;
+.score .bar {
+    position: absolute;
+    background: #999999;
     bottom: 0px;
+    left: 0px;
+    height: 0px;
+    width: 100%;
 }
 
 #message {
