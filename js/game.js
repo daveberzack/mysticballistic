@@ -176,15 +176,15 @@
 
     function start_handler(ev) {
         ev.preventDefault();
-        log("touchStart", ev);
+        log("touchStart");
     }
     function move_handler(ev) {
         ev.preventDefault();
-        log("touchMove", ev);
+        log("touchMove");
     }
     function end_handler(ev) {
         ev.preventDefault();
-        log("touchEnd", ev);
+        log("touchEnd");
     }
     function initTouchHandlers() {
         $(".button.trigger").click((e)=>{
