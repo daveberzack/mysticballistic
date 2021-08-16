@@ -12,7 +12,7 @@ html, body {
 body {
 	display: flex;
 	margin: 0;
-	background-color: #495057;
+	background-color: #999999;
 }
 #all, #container, #background, #overlay, #canvas {
     width:$boardWidth;
@@ -27,6 +27,7 @@ body {
     position: absolute;
 }
 #background {
+	background-color: #999999;
     z-index: 1;
 }
 #canvas {
