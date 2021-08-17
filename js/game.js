@@ -6,7 +6,6 @@
 
 // ================ INITIALIZE GAME ====================
 	function init() {
-        log("start");
         initValues();
         initEngine();
         initLevel();
@@ -123,11 +122,9 @@
 
 
     function startJoystick(player, x, y) {
-        log("start:"+player.index+" - "+x+","+y);
         moveJoystick(player, x, y);
     }
     function endJoystick(player) {
-        log("end:"+player.index);
         if (player.actionMode == ACTION.LAUNCH) {
             launchBall(player);
         }
@@ -138,7 +135,6 @@
         let angle = getAngle(0, 0, x, y);
         player.joystickAngle = angle;
         player.joystickPercent = percent;
-        log("move:"+player.index+" ... "+percent+" ... "+angle);
     }
     function initTouchHandlers() {
         $('.button.trigger').bind('touchstart', function(e){
@@ -329,65 +325,5 @@
     $( document ).ready(function() {
         init();
     });
-//	window.addEventListener('load', init, false);
 
 })();
-
-
-/*
-
-    function initHandlers() {
-        $(".button.trigger").click((e)=>{
-            let player = players[ $(e.target).data('player') ];
-            let ballIndex = $(e.target).data('ball');
-            let whichBall = player.balls[ballIndex];
-            if (whichBall===null) {
-                addBall(player, ballIndex);
-                player.actionMode = ACTION.LAUNCH;
-                player.actionTarget = player.balls[ballIndex];
-            }
-            else {
-                player.actionMode = ACTION.TRIGGER;
-                player.actionTarget = whichBall;
-            }
-        })
-        $(".button.launch").click((e)=>{
-            let player = players[ $(e.target).data('player') ];
-            player.actionMode = ACTION.LAUNCH;
-            player.actionTarget = player.balls[ $(e.target).data('ball') ];
-        })
-
-        $("#overlay").mousedown((e)=>{
-            let myOffset = $("#overlay").offset();
-            let mX = e.pageX - myOffset.left;
-            let mY = e.pageY - myOffset.top;
-            //console.log("mouse @ "+mX+","+mY);
-            if ( getDistance(mX, mY, players[0].aimCenterX, players[0].aimCenterY) < BOARD.AIM_RADIUS) {
-                players[0].isAiming = true;
-            }
-            if ( getDistance(mX, mY, players[1].aimCenterX, players[1].aimCenterY) < BOARD.AIM_RADIUS) {
-                players[1].isAiming = true;
-            }
-        })
-        $("#overlay").mouseup((e)=>{
-            var myOffset = $("#overlay").offset();
-            var mx = e.pageX - myOffset.left;
-            var my = e.pageY - myOffset.top;
-
-            if (players[0].isAiming && players[0].actionMode==ACTION.LAUNCH && players[0].actionTarget!==null) {
-                launchBall(players[0], mx, my);
-            }
-            else if (players[1].isAiming && players[1].actionMode==ACTION.LAUNCH && players[1].actionTarget!==null) {
-                launchBall(players[1], mx, my)
-            }
-
-            else if (players[0].isAiming && players[0].actionMode==ACTION.TRIGGER && players[0].actionTarget!==null) {
-                
-            }
-
-            else if (players[1].isAiming && players[1].actionMode==ACTION.TRIGGER && players[1].actionTarget!==null) {
-                
-            }
-        })
-    }
-*/
