@@ -78,7 +78,8 @@
                 score: 0,
                 actionMode: 0,
                 actionTarget: null,
-                isAiming: false,
+                joystickAngle: 0,
+                joystickPercent: 0,
             },
             {
                 index: 1,
@@ -91,7 +92,8 @@
                 score: 0,
                 actionMode: 0,
                 actionTarget: null,
-                isAiming: false,
+                joystickAngle: 0,
+                joystickPercent: 0,
             }
         ];
         goals = [];
@@ -119,70 +121,24 @@
 
 // ================ UI HANDLERS ====================
 
-    function initHandlers() {
-        $(".button.trigger").click((e)=>{
-            let player = players[ $(e.target).data('player') ];
-            let ballIndex = $(e.target).data('ball');
-            let whichBall = player.balls[ballIndex];
-            if (whichBall===null) {
-                addBall(player, ballIndex);
-                player.actionMode = ACTION.LAUNCH;
-                player.actionTarget = player.balls[ballIndex];
-            }
-            else {
-                player.actionMode = ACTION.TRIGGER;
-                player.actionTarget = whichBall;
-            }
-        })
-        $(".button.launch").click((e)=>{
-            let player = players[ $(e.target).data('player') ];
-            player.actionMode = ACTION.LAUNCH;
-            player.actionTarget = player.balls[ $(e.target).data('ball') ];
-        })
-
-        $("#overlay").mousedown((e)=>{
-            let myOffset = $("#overlay").offset();
-            let mX = e.pageX - myOffset.left;
-            let mY = e.pageY - myOffset.top;
-            //console.log("mouse @ "+mX+","+mY);
-            if ( getDistance(mX, mY, players[0].aimCenterX, players[0].aimCenterY) < BOARD.AIM_RADIUS) {
-                players[0].isAiming = true;
-            }
-            if ( getDistance(mX, mY, players[1].aimCenterX, players[1].aimCenterY) < BOARD.AIM_RADIUS) {
-                players[1].isAiming = true;
-            }
-        })
-        $("#overlay").mouseup((e)=>{
-            var myOffset = $("#overlay").offset();
-            var mx = e.pageX - myOffset.left;
-            var my = e.pageY - myOffset.top;
-
-            if (players[0].isAiming && players[0].actionMode==ACTION.LAUNCH && players[0].actionTarget!==null) {
-                launchBall(players[0], mx, my);
-            }
-            else if (players[1].isAiming && players[1].actionMode==ACTION.LAUNCH && players[1].actionTarget!==null) {
-                launchBall(players[1], mx, my)
-            }
-
-            else if (players[0].isAiming && players[0].actionMode==ACTION.TRIGGER && players[0].actionTarget!==null) {
-                
-            }
-
-            else if (players[1].isAiming && players[1].actionMode==ACTION.TRIGGER && players[1].actionTarget!==null) {
-                
-            }
-        })
-    }
-
 
     function startJoystick(player, x, y) {
-        log("start:"+player+" - "+x+","+y);
+        log("start:"+player.index+" - "+x+","+y);
+        moveJoystick(player, x, y);
     }
-    function endJoystick(player, x, y) {
-        log("end:"+player+" - "+x+","+y);
+    function endJoystick(player) {
+        log("end:"+player.index);
+        if (player.actionMode == ACTION.LAUNCH) {
+            launchBall(player);
+        }
     }
     function moveJoystick(player, x, y) {
-        log("move:"+player+" - "+x+","+y);
+        let distance = getDistance(0, 0, x, y);
+        let percent = Math.min(distance/BOARD.AIM_RADIUS, 1);
+        let angle = getAngle(0, 0, x, y);
+        player.joystickAngle = angle;
+        player.joystickPercent = percent;
+        log("move:"+player.index+" ... "+percent+" ... "+angle);
     }
     function initTouchHandlers() {
         $('.button.trigger').bind('touchstart', function(e){
@@ -208,15 +164,24 @@
 
         $('.joystick').bind('touchstart', function(e){
             e.preventDefault();
-            startJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
+            const player = players[e.target.getAttribute("data-player")];
+            const touch = e.targetTouches[0];
+            const x = touch.pageX - player.aimCenterX;
+            const y = touch.pageY - player.aimCenterY;
+            startJoystick(player, x, y);
         })
         $('.joystick').bind('touchmove', function(e){
             e.preventDefault();
-            moveJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
+            const player = players[e.target.getAttribute("data-player")];
+            const touch = e.targetTouches[0];
+            const x = touch.pageX - player.aimCenterX;
+            const y = touch.pageY - player.aimCenterY;
+            moveJoystick(player,x,y);
         })
         $('.joystick').bind('touchend touchcancel', function(e){
             e.preventDefault();
-            endJoystick(e.target.getAttribute("data-player"), e.screenX, e.screenY);
+            const player = players[e.target.getAttribute("data-player")];
+            endJoystick(player);
         })
     }
 
@@ -298,26 +263,13 @@
         })
     }
 
-    function launchBall(player, mx, my){
-        let distance = getDistance(player.aimCenterX, player.aimCenterY, mx, my);
-        let percent = Math.min(distance/BOARD.AIM_RADIUS, 1);
-        let velocity = player.actionTarget.type.maxVelocity * percent;
-        let angle = getAngle(player.aimCenterX, player.aimCenterY, mx, my);
-        console.log("V:"+velocity);
-        console.log("A:"+angle);
-
-        let vx = -velocity * Math.cos(angle);
-        let vy = -velocity * Math.sin(angle);
-
-        // vx = (mx - player.aimCenterX)/5;
-        // vy = (player.aimCenterY - my)/5;
-        // if (vx<-10) vx = -10;
-        // if (vx>10) vx = 10;
-        // if (vy<-10) vy = -10;
-        // if (vx>10) vy = 10;
+    function launchBall(player){
+        console.log("Launch",player);
+        let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
+        let vx = -velocity * Math.cos(player.joystickAngle);
+        let vy = -velocity * Math.sin(player.joystickAngle);
         Matter.Body.setVelocity( player.actionTarget.body, {x: vx, y: vy});
 
-        player.isAiming = false;
     }
 
     function addBall(player, ballIndex){
@@ -380,3 +332,62 @@
 //	window.addEventListener('load', init, false);
 
 })();
+
+
+/*
+
+    function initHandlers() {
+        $(".button.trigger").click((e)=>{
+            let player = players[ $(e.target).data('player') ];
+            let ballIndex = $(e.target).data('ball');
+            let whichBall = player.balls[ballIndex];
+            if (whichBall===null) {
+                addBall(player, ballIndex);
+                player.actionMode = ACTION.LAUNCH;
+                player.actionTarget = player.balls[ballIndex];
+            }
+            else {
+                player.actionMode = ACTION.TRIGGER;
+                player.actionTarget = whichBall;
+            }
+        })
+        $(".button.launch").click((e)=>{
+            let player = players[ $(e.target).data('player') ];
+            player.actionMode = ACTION.LAUNCH;
+            player.actionTarget = player.balls[ $(e.target).data('ball') ];
+        })
+
+        $("#overlay").mousedown((e)=>{
+            let myOffset = $("#overlay").offset();
+            let mX = e.pageX - myOffset.left;
+            let mY = e.pageY - myOffset.top;
+            //console.log("mouse @ "+mX+","+mY);
+            if ( getDistance(mX, mY, players[0].aimCenterX, players[0].aimCenterY) < BOARD.AIM_RADIUS) {
+                players[0].isAiming = true;
+            }
+            if ( getDistance(mX, mY, players[1].aimCenterX, players[1].aimCenterY) < BOARD.AIM_RADIUS) {
+                players[1].isAiming = true;
+            }
+        })
+        $("#overlay").mouseup((e)=>{
+            var myOffset = $("#overlay").offset();
+            var mx = e.pageX - myOffset.left;
+            var my = e.pageY - myOffset.top;
+
+            if (players[0].isAiming && players[0].actionMode==ACTION.LAUNCH && players[0].actionTarget!==null) {
+                launchBall(players[0], mx, my);
+            }
+            else if (players[1].isAiming && players[1].actionMode==ACTION.LAUNCH && players[1].actionTarget!==null) {
+                launchBall(players[1], mx, my)
+            }
+
+            else if (players[0].isAiming && players[0].actionMode==ACTION.TRIGGER && players[0].actionTarget!==null) {
+                
+            }
+
+            else if (players[1].isAiming && players[1].actionMode==ACTION.TRIGGER && players[1].actionTarget!==null) {
+                
+            }
+        })
+    }
+*/
