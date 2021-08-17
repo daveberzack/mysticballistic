@@ -14,7 +14,7 @@ body {
 	margin: 0;
 	background-color: #999999;
 }
-#all, #container, #background, #overlay, #canvas {
+#all, #container, #background, #overlay, #canvas, #balls {
     width:$boardWidth;
     height:$boardHeight;
     position: fixed;
@@ -36,6 +36,9 @@ body {
     transform: translateY(0);
     z-index: 2;
 }
-#overlay {
+#balls {
     z-index: 3;
+}
+#overlay {
+    z-index: 4;
 }

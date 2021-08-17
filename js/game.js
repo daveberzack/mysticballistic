@@ -10,7 +10,7 @@
         initEngine();
         initLevel();
         initTouchHandlers();
-        setInterval(run, 50);
+        setInterval(run, 20);
 	}
 
     function initValues() {
@@ -26,28 +26,28 @@
         BALL_TYPE = [
             {
                 name: "air",
-                radius: 10,
+                radius: 20,
                 density: 0.0005,
                 friction: .025,
                 maxVelocity: 15, 
             },
             {
                 name: "water",
-                radius: 15,
+                radius: 30,
                 density: 0.001,
                 friction: .03,
                 maxVelocity: 10,
             },
             {
                 name: "earth",
-                radius: 24,
+                radius: 48,
                 density: 0.0008,
                 friction: .045,
-                maxVelocity: 10,
+                maxVelocity: 9,
             },
             {
                 name:"fire",
-                radius: 15,
+                radius: 30,
                 density: 0.001,
                 friction: .03,
                 maxVelocity: 10,
@@ -79,6 +79,8 @@
                 actionTarget: null,
                 joystickAngle: 0,
                 joystickPercent: 0,
+                joystickTimer: 0,
+                joystickActive: false,
             },
             {
                 index: 1,
@@ -93,6 +95,8 @@
                 actionTarget: null,
                 joystickAngle: 0,
                 joystickPercent: 0,
+                joystickTimer: 0,
+                joystickActive: false,
             }
         ];
         goals = [];
@@ -122,12 +126,19 @@
 
 
     function startJoystick(player, x, y) {
+        player.joystickTimer = 0;
+        player.joystickActive = true;
         moveJoystick(player, x, y);
     }
     function endJoystick(player) {
         if (player.actionMode == ACTION.LAUNCH) {
             launchBall(player);
         }
+        else if (player.actionMode == ACTION.TRIGGER) {
+            triggerBall(player);
+        }
+        player.joystickTimer=0;
+        player.joystickActive = false;
     }
     function moveJoystick(player, x, y) {
         let distance = getDistance(0, 0, x, y);
@@ -184,14 +195,29 @@
 // ================ GAME LOOP ====================
 
 	function run() {
-        if (runCounter%20 == 0) {
+        if (players[0].joystickActive) players[0].joystickTimer += .02;
+        if (players[1].joystickActive) players[1].joystickTimer += .02;
+        if (runCounter%50 == 0) {
             updateScores();
         }
+        updateBallGraphics();
 		runCounter++;
 	}
 
 // ================ SCORING FUNCTIONS ====================
 
+    function updateBallGraphics() {
+        players.forEach( (player) => {
+            player.balls.forEach( (ball) => {
+                if (ball) {
+                    ball.graphic.css({
+                        left: ball.body.position.x,
+                        top: ball.body.position.y,
+                    })
+                }
+            });
+        });
+    }
     function updateScores() {
         scoreGoals();
         checkForWin();
@@ -214,7 +240,9 @@
                 let output = total;
                 if (ball!==null) {
                     let body = ball.body;
-                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r) output++;    
+                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) <= goal.r+ball.type.radius) {
+                        output++;    
+                    }
                 }
                 return output;
             }, 0);
@@ -222,7 +250,7 @@
                 let output = total;
                 if (ball!==null) {
                     let body = ball.body;
-                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r) output++;
+                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r+ball.type.radius) output++;
                 }
                 return output;
             }, 0);
@@ -259,14 +287,20 @@
         })
     }
 
-    function launchBall(player){
-        console.log("Launch",player);
-        let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
-        let vx = -velocity * Math.cos(player.joystickAngle);
-        let vy = -velocity * Math.sin(player.joystickAngle);
-        Matter.Body.setVelocity( player.actionTarget.body, {x: vx, y: vy});
+	function addWall(x, y, width, height, color) {
+		return Matter.Bodies.rectangle(x+width/2, y+height/2, width, height,  {
+			isStatic: true,
+			render: { visible: false },
+			render: { fillStyle: color }
+		});
+	}
 
-    }
+	function addRoundWall(x, y, r, color) {
+		return Matter.Bodies.circle(x, y, r, {
+			isStatic: true,
+			render: { fillStyle: color }
+		});
+	}
 
     function addBall(player, ballIndex){
         let type = BALL_TYPE[ballIndex];
@@ -276,31 +310,108 @@
             frictionAir: type.friction, 
             density: type.density,
             render: {
-                sprite: {
-                    texture: './img/'+type.name+player.index+'.png',
-                    xScale: (type.radius*2)/160,
-                    yScale: (type.radius*2)/160
-                }
+                opacity: 0
             }
 		});
 		Matter.World.add(engine.world, body);
         let ball = {type: type, body: body};
         player.balls[ballIndex] = ball;
+
+        let newBall = $(`
+                <div class="ball type_${ball.type.name} player_${player.index}" id="ball_${player.index}_${ballIndex}">
+                    <div class="body" style="width:${ball.type.radius*2}px; height:${ball.type.radius*2}px; top:-${ball.type.radius}px; left:-${ball.type.radius}px"></div>
+                    <div class="effectCooldown"></div>
+                    <div class="effectRadius"></div>
+                </div>`);
+                $("#balls").append(newBall);
+                ball.graphic = newBall;
     }
 
-	function addWall(x, y, width, height, color) {
-		return Matter.Bodies.rectangle(x+width/2, y+height/2, width, height,  {
-			isStatic: true,
-			render: { visible: false },
-			render: { fillStyle: color }
-		});
-	}
-	function addRoundWall(x, y, r, color) {
-		return Matter.Bodies.circle(x, y, r, {
-			isStatic: true,
-			render: { fillStyle: color }
-		});
-	}
+    function launchBall(player){
+        let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
+        launchBall2(player.actionTarget.body, velocity, player.joystickAngle);
+    }
+
+    function removeBall(ball){
+        Matter.World.remove(engine.world, ball.body);
+        players.forEach( (player) => {
+            player.balls.forEach( (ball2, ballIndex) => {
+                if (ball2==ball) {
+                    player.balls[ballIndex] = null;
+                }
+            });
+        });
+    }
+
+    function launchBall2(body, velocity, angle){
+        let vx = -velocity * Math.cos(angle);
+        let vy = -velocity * Math.sin(angle);
+        Matter.Body.setVelocity( body, {x: vx, y: vy});
+    }
+
+    function triggerBall(player){
+        const type = player.actionTarget.type.name;
+        if (type=="water"){
+            triggerWater(player);
+        }
+        if (type=="air"){
+            triggerAir(player);
+        }
+        if (type=="fire"){
+            console.log(player.joystickTimer);
+            triggerFire(player);
+        }
+    }
+
+    function triggerWater(player){
+        const ball = player.actionTarget;
+        const ballX = ball.body.position.x;
+        const ballY = ball.body.position.y;
+        const ballsInRange = findBallsWithinRange(ballX, ballY, 100);
+        ballsInRange.forEach((ball2) => {
+            if (ball2!=ball) {
+                const ball2X = ball2.body.position.x;
+                const ball2Y = ball2.body.position.y;
+                const velocity = getDistance(ballX, ballY, ball2X, ball2Y)/20;
+                const angle = getAngle(ball2X, ball2Y, ballX, ballY);
+                console.log(ballX+","+ballY+" ... "+ ball2X+","+ball2Y+" ... "+velocity+","+angle);
+                launchBall2(ball2.body, velocity, angle);
+            }
+        });
+    }
+
+    function triggerAir(player){
+        launchBall(player);
+    }
+    function triggerFire(player){
+        if (player.joystickTimer>2){
+            const ball = player.actionTarget;
+            const ballX = ball.body.position.x;
+            const ballY = ball.body.position.y;
+            const ballsInRange = findBallsWithinRange(ballX, ballY, 50);
+            ballsInRange.forEach((ball2) => {
+                if (ball2!=ball) {
+                    removeBall(ball2);
+                }
+            });
+        }
+        
+    }
+
+    function findBallsWithinRange(x, y, r){
+        const output = [];
+        players.forEach( (player) => {
+            player.balls.forEach( (ball) => {
+                if (ball) {
+                    console.log(ball);
+                    const distance = getDistance(x, y, ball.body.position.x, ball.body.position.y);
+                    if (distance <= r) output.push(ball);
+                }
+            });
+        });
+        console.log(output);
+        return output;
+    }
 
 // ================ UTILITY FUNCTIONS ====================
 

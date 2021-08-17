@@ -1,0 +1,40 @@
+#balls {
+    .ball {
+        position: absolute;
+        left: 200px;
+        top: 200px;
+    }
+    .ball .body {
+        position: absolute;
+        border-radius: 999px;
+        background-size: cover;
+    }
+    .ball.player_0 .body{
+        background-color: #FFFFFF;
+    }
+    .ball.player_1 .body {
+        background-color: #000000;
+    }
+    .ball.player_0 .body {
+        -webkit-transform:rotate(180deg);
+        -moz-transform: rotate(180deg);
+        -ms-transform: rotate(180deg);
+        -o-transform: rotate(180deg);
+        transform: rotate(180deg);
+    }
+    
+
+
+    .ball.type_water .body {
+        background-image: url("../img/water.png");
+    }
+    .ball.type_earth .body {
+        background-image: url("../img/earth.png");
+    }
+    .ball.type_air .body {
+        background-image: url("../img/air.png");
+    }
+    .ball.type_fire .body {
+        background-image: url("../img/fire.png");
+    }
+}
