@@ -25,6 +25,9 @@
                     <div class="button trigger b2" data-player="0" data-action="1" data-ball="2"></div>
                     <div class="button trigger b3" data-player="0" data-action="1" data-ball="3"></div>
                     <div id="joystick_0" class="joystick" data-player="0"></div>
+                    <svg class="joystickCooldown">
+                        <path id="cooldownPath0" fill="none" stroke="#FFFFFF44" stroke-width="50" />
+                    </svg>
                     <div id="score_0" class="score">
                         <div class="bar"></div>
                     </div>
@@ -39,6 +42,9 @@
                     <div class="button trigger b2" data-player="1" data-action="1" data-ball="2"></div>
                     <div class="button trigger b3" data-player="1" data-action="1" data-ball="3"></div>
                     <div id="joystick_1" class="joystick" data-player="1"></div>
+                    <svg class="joystickCooldown">
+                        <path id="cooldownPath1" fill="none" stroke="#00000044" stroke-width="50" />
+                    </svg>
                     <div id="score_1" class="score">
                         <div class="bar"></div>
                     </div>
@@ -58,15 +64,10 @@
 
 <!-- TO DO
 
-    fix cooldown
-    fix effect range check
+    fix fire effect
 
-    show selected as dotted circle around cooldown
-    show aim line, with angle and length
 
-    show launch cooldown
-    augment/reset launch cooldown
-    diable launch when off cooldown
+
 
 
     consolidate/separate aura rings from balls

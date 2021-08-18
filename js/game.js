@@ -32,8 +32,9 @@
                 density: 0.0005,
                 friction: .025,
                 maxVelocity: 15, 
-                cooldownLimit: 5,                
+                cooldownLimit: 4,                
                 effectRadius: 0,
+                color: "#7260be",
             },
             {
                 name: "water",
@@ -41,9 +42,9 @@
                 density: 0.001,
                 friction: .03,
                 maxVelocity: 10, 
-                cooldownLimit: 12,                
+                cooldownLimit: 15,                
                 effectRadius: 140,
-
+                color: "#61d0ee",
             },
             {
                 name: "earth",
@@ -53,6 +54,7 @@
                 maxVelocity: 9, 
                 cooldownLimit: 0,
                 effectRadius: 0,
+                color: "#774a21",
             },
             {
                 name: "fire",
@@ -60,8 +62,9 @@
                 density: 0.001,
                 friction: .03,
                 maxVelocity: 10, 
-                cooldownLimit: 15,
+                cooldownLimit: 20,
                 effectRadius: 60,
+                color: "#f0843b",
             },
         ];
 
@@ -73,7 +76,7 @@
             AIM_RADIUS: 100,
             SCORE_BAR_HEIGHT: 115,
             GOAL_RADIUS: 125,
-            LAUNCH_COOLDOWN_LIMIT: 5
+            LAUNCH_COOLDOWN_LIMIT: 7
         }
     
         runCounter=0;
@@ -145,8 +148,9 @@
         moveJoystick(player, x, y);
     }
     function endJoystick(player) {
-        if (player.actionMode == ACTION.LAUNCH) {
+        if (player.actionMode == ACTION.LAUNCH && player.launchCooldown>=BOARD.LAUNCH_COOLDOWN_LIMIT) {
             launchBall(player);
+            player.launchCooldown = 0;
         }
         else if (player.actionMode == ACTION.TRIGGER) {
             triggerBall(player);
@@ -163,9 +167,11 @@
     }
     function initTouchHandlers() {
         $('.button.trigger').bind('touchstart', function(e){
-            let player = players[ $(e.target).data('player') ];
-            let ballIndex = $(e.target).data('ball');
-            let whichBall = player.balls[ballIndex];
+            const player = players[ $(e.target).data('player') ];
+            const targetClass = "targeted"+player.index;
+            $("."+targetClass).removeClass(targetClass);
+            const ballIndex = $(e.target).data('ball');
+            const whichBall = player.balls[ballIndex];
             if (whichBall===null) {
                 addBall(player, ballIndex);
                 player.actionMode = ACTION.LAUNCH;
@@ -175,11 +181,15 @@
                 player.actionMode = ACTION.TRIGGER;
                 player.actionTarget = whichBall;
             }
+            player.actionTarget.graphic.addClass(targetClass);
         })
         $('.button.launch').bind('touchstart', function(e){
             let player = players[ $(e.target).data('player') ];
+            const targetClass = "targeted"+player.index;
+            $("."+targetClass).removeClass(targetClass);
             player.actionMode = ACTION.LAUNCH;
             player.actionTarget = player.balls[ $(e.target).data('ball') ];
+            player.actionTarget.graphic.addClass(targetClass);
         })
 
 
@@ -228,8 +238,17 @@
                     ball.cooldown += 1/50;
                 }
             });
-            player.cooldown += 1/50;
+            player.launchCooldown += 1/50;
+            updateLaunchGraphics();
         });
+    }
+
+    function updateLaunchGraphics() {
+        players.forEach( (player) => {
+            const cooldownPercent = Math.min(.99999, player.launchCooldown/BOARD.LAUNCH_COOLDOWN_LIMIT);
+            const arcValues = describeArc(100,100, 50, 0, 360*cooldownPercent);
+            $("#cooldownPath"+player.index).attr("d", arcValues);  
+        }); 
     }
 
     function updateBallGraphics() {
@@ -241,9 +260,22 @@
                         top: ball.body.position.y,
                     })
                     if (ball.type.cooldownLimit>0){
-                        const cooldownPercent = Math.min(.999,ball.cooldown/ball.type.cooldownLimit);
+                        const cooldownPercent = Math.min(.99999,ball.cooldown/ball.type.cooldownLimit);
                         ball.graphic.toggleClass("cooldownReady", cooldownPercent>.99);
-                        ball.graphic.find(".cooldownPath").attr("d", describeArc(100,100, ball.type.radius+5, 0, 360*cooldownPercent));    
+                        ball.graphic.find(".cooldownPath").attr("d", describeArc(100,100, ball.type.radius-3, 0, 360*cooldownPercent));    
+                    }
+                    if (ball.graphic.hasClass("targeted"+player.index) && player.joystickActive && (player.actionMode==ACTION.LAUNCH || player.actionTarget.type.name=="air")){
+                        const aimLine = ball.graphic.find(".aimLinePath");
+                        const p1 = polarToCartesian(300, 300, ball.type.radius+20, player.joystickAngle);
+                        const p2 = polarToCartesian(300, 300, ball.type.radius+20+player.joystickPercent*150, player.joystickAngle);
+                        aimLine.attr("x1", p1.x);   
+                        aimLine.attr("y1", p1.y);    
+                        aimLine.attr("x2", p2.x);   
+                        aimLine.attr("y2", p2.y); 
+                        aimLine.show();   
+                    }
+                    else {
+                        ball.graphic.find(".aimLinePath").hide();
                     }
                 }
             });
@@ -351,20 +383,27 @@
         let newBall = $(`
                 <div class="ball type_${ball.type.name} player_${player.index}" id="ball_${player.index}_${ballIndex}">
                     <div class="body" style="width:${ball.type.radius*2}px; height:${ball.type.radius*2}px; top:-${ball.type.radius}px; left:-${ball.type.radius}px"></div>
+                    <svg class="highlight">
+                        <circle class="cooldownPath" fill="${player.ballColor}33" cx="100" cy="100" r="${ball.type.radius+12}px"/>
+                    </svg>
                     <svg class="effectCooldown">
-                        <path class="cooldownPath" fill="none" stroke="${player.ballColor}" stroke-width="2" />
+                        <path class="cooldownPath" fill="none" stroke="${ball.type.color}" stroke-width="3" />
                     </svg>
                     <svg class="effectRadius">
-                        <circle class="cooldownPath" fill="none" stroke="${player.ballColor}" stroke-linecap="round" stroke-dasharray="1,12" stroke-width="4" 
+                        <circle class="cooldownPath" fill="none" stroke="${ball.type.color}" stroke-linecap="round" stroke-dasharray="1,12" stroke-width="4" 
                         cx="200" cy="200" r="${ball.type.effectRadius}"/>
                     </svg>
+                    <svg class="aimLine">
+                        <line class="aimLinePath" stroke="${player.ballColor}33" stroke-width="7" stroke-linecap="round" stroke-dasharray="1, 15"/>
+                    </svg>
                 </div>`);
-                $("#balls").append(newBall);
-                ball.graphic = newBall;
+        $("#balls").append(newBall);
+        ball.graphic = newBall;
     }
 
     function launchBall(player){
         let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
+        console.log("launch"+velocity);
         launchBall2(player.actionTarget.body, velocity, player.joystickAngle);
     }
 
@@ -420,8 +459,8 @@
     }
 
     function triggerAir(player){
+        player.actionTarget.cooldown=0;
         launchBall(player);
-        ball.cooldown=0;
     }
     function triggerFire(player){
         if (player.joystickTimer>2){
@@ -464,8 +503,8 @@
     }
 
     function describeArc(x, y, r, startAngle, endAngle){
-            var start = polarToCartesian(x, y, r, endAngle);
-            var end = polarToCartesian(x, y, r, startAngle);
+            var start = polarToCartesian(x, y, r, degreesToRadians(endAngle));
+            var end = polarToCartesian(x, y, r, degreesToRadians(startAngle));
             var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
             var d = [
                 "M", start.x, start.y, 
@@ -474,14 +513,16 @@
             return d;
     }
 
-    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
-        var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
-      
+    function polarToCartesian(centerX, centerY, radius, angleInRadians) {
         return {
           x: centerX + (radius * Math.cos(angleInRadians)),
           y: centerY + (radius * Math.sin(angleInRadians))
         };
-      }
+    }
+
+    function degreesToRadians(degrees){
+        return (degrees-90) * Math.PI / 180.0;
+    }
 
 // ================ CALL INIT ====================
     $( document ).ready(function() {

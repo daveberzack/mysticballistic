@@ -76,6 +76,14 @@
     right: 10px;
     bottom: 10px;
 }
+.joystickCooldown {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    right: 10px;
+    bottom: 10px;
+    pointer-events: none;
+}
 
 .score {
     position: absolute;
