@@ -96,7 +96,7 @@
                 joystickPercent: 0,
                 joystickTimer: 0,
                 joystickActive: false,
-                launchCooldown: 0
+                launchCooldown: BOARD.LAUNCH_COOLDOWN_LIMIT,
             },
             {
                 index: 1,
@@ -113,7 +113,7 @@
                 joystickPercent: 0,
                 joystickTimer: 0,
                 joystickActive: false,
-                launchCooldown: 0
+                launchCooldown: BOARD.LAUNCH_COOLDOWN_LIMIT,
             }
         ];
         goals = [];
@@ -184,12 +184,16 @@
             player.actionTarget.graphic.addClass(targetClass);
         })
         $('.button.launch').bind('touchstart', function(e){
-            let player = players[ $(e.target).data('player') ];
-            const targetClass = "targeted"+player.index;
-            $("."+targetClass).removeClass(targetClass);
-            player.actionMode = ACTION.LAUNCH;
-            player.actionTarget = player.balls[ $(e.target).data('ball') ];
-            player.actionTarget.graphic.addClass(targetClass);
+            const player = players[ $(e.target).data('player') ];
+            const thisBall = player.balls[ $(e.target).data('ball') ];
+            if (thisBall){
+                const targetClass = "targeted"+player.index;
+                $("."+targetClass).removeClass(targetClass);
+                player.actionMode = ACTION.LAUNCH;
+                player.actionTarget = thisBall;
+                player.actionTarget.graphic.addClass(targetClass);
+            }
+            
         })
 
 
@@ -266,8 +270,9 @@
                     }
                     if (ball.graphic.hasClass("targeted"+player.index) && player.joystickActive && (player.actionMode==ACTION.LAUNCH || player.actionTarget.type.name=="air")){
                         const aimLine = ball.graphic.find(".aimLinePath");
+                        const lineLength = player.joystickPercent*ball.type.maxVelocity*8;
                         const p1 = polarToCartesian(300, 300, ball.type.radius+20, player.joystickAngle);
-                        const p2 = polarToCartesian(300, 300, ball.type.radius+20+player.joystickPercent*150, player.joystickAngle);
+                        const p2 = polarToCartesian(300, 300, ball.type.radius+20+lineLength, player.joystickAngle);
                         aimLine.attr("x1", p1.x);   
                         aimLine.attr("y1", p1.y);    
                         aimLine.attr("x2", p2.x);   
@@ -403,12 +408,12 @@
 
     function launchBall(player){
         let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
-        console.log("launch"+velocity);
         launchBall2(player.actionTarget.body, velocity, player.joystickAngle);
     }
 
     function removeBall(ball){
         Matter.World.remove(engine.world, ball.body);
+        ball.graphic.remove();
         players.forEach( (player) => {
             player.balls.forEach( (ball2, ballIndex) => {
                 if (ball2==ball) {
@@ -426,7 +431,6 @@
 
     function triggerBall(player){
         const type = player.actionTarget.type;
-        console.log(player.actionTarget.cooldown+" ... "+type.cooldownLimit);
         if (player.actionTarget.cooldown >= type.cooldownLimit) {
             if (type.name=="water"){
                 triggerWater(player);
@@ -463,13 +467,16 @@
         launchBall(player);
     }
     function triggerFire(player){
-        if (player.joystickTimer>2){
+        console.log("fire:"+player.joystickTimer);
+        if (true) {//(player.joystickTimer>2){
             const ball = player.actionTarget;
             const ballX = ball.body.position.x;
             const ballY = ball.body.position.y;
             const ballsInRange = findBallsWithinRange(ballX, ballY, 50);
+            console.log("balls:"+ballsInRange);
             ballsInRange.forEach((ball2) => {
                 if (ball2!=ball) {
+                    console.log("remove",ball2);
                     removeBall(ball2);
                 }
             });
