@@ -17,12 +17,14 @@
         ACTION = {
             LAUNCH: 0,
             TRIGGER: 1   
-        }
+        };
         COLOR = {
             WALL: "#222222",
             WALL0: "#FFFFFF",
-            WALL1: "#000000"
-        }
+            BALL0: "#FFFFFF",
+            WALL1: "#000000",
+            BALL1: "#000000",
+        };
         BALL_TYPE = [
             {
                 name: "air",
@@ -30,27 +32,36 @@
                 density: 0.0005,
                 friction: .025,
                 maxVelocity: 15, 
+                cooldownLimit: 5,                
+                effectRadius: 0,
             },
             {
                 name: "water",
                 radius: 30,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 10,
+                maxVelocity: 10, 
+                cooldownLimit: 12,                
+                effectRadius: 140,
+
             },
             {
                 name: "earth",
                 radius: 48,
                 density: 0.0008,
                 friction: .045,
-                maxVelocity: 9,
+                maxVelocity: 9, 
+                cooldownLimit: 0,
+                effectRadius: 0,
             },
             {
-                name:"fire",
+                name: "fire",
                 radius: 30,
                 density: 0.001,
                 friction: .03,
-                maxVelocity: 10,
+                maxVelocity: 10, 
+                cooldownLimit: 15,
+                effectRadius: 60,
             },
         ];
 
@@ -62,13 +73,14 @@
             AIM_RADIUS: 100,
             SCORE_BAR_HEIGHT: 115,
             GOAL_RADIUS: 125,
+            LAUNCH_COOLDOWN_LIMIT: 5
         }
     
         runCounter=0;
         players = [
             {
                 index: 0,
-                ballColor: COLOR.BALL1,
+                ballColor: COLOR.BALL0,
                 launchX: 225,
                 launchY: 225,
                 aimCenterX: 110,
@@ -81,10 +93,11 @@
                 joystickPercent: 0,
                 joystickTimer: 0,
                 joystickActive: false,
+                launchCooldown: 0
             },
             {
                 index: 1,
-                ballColor: COLOR.BALL2,
+                ballColor: COLOR.BALL1,
                 launchX: BOARD.WIDTH-225,
                 launchY: BOARD.HEIGHT-225,
                 aimCenterX: BOARD.WIDTH-110,
@@ -97,6 +110,7 @@
                 joystickPercent: 0,
                 joystickTimer: 0,
                 joystickActive: false,
+                launchCooldown: 0
             }
         ];
         goals = [];
@@ -200,11 +214,23 @@
         if (runCounter%50 == 0) {
             updateScores();
         }
+        updateCooldowns();
         updateBallGraphics();
 		runCounter++;
 	}
 
 // ================ SCORING FUNCTIONS ====================
+
+    function updateCooldowns() {
+        players.forEach( (player) => {
+            player.balls.forEach( (ball) => {
+                if (ball) {
+                    ball.cooldown += 1/50;
+                }
+            });
+            player.cooldown += 1/50;
+        });
+    }
 
     function updateBallGraphics() {
         players.forEach( (player) => {
@@ -214,6 +240,11 @@
                         left: ball.body.position.x,
                         top: ball.body.position.y,
                     })
+                    if (ball.type.cooldownLimit>0){
+                        const cooldownPercent = Math.min(.999,ball.cooldown/ball.type.cooldownLimit);
+                        ball.graphic.toggleClass("cooldownReady", cooldownPercent>.99);
+                        ball.graphic.find(".cooldownPath").attr("d", describeArc(100,100, ball.type.radius+5, 0, 360*cooldownPercent));    
+                    }
                 }
             });
         });
@@ -314,14 +345,19 @@
             }
 		});
 		Matter.World.add(engine.world, body);
-        let ball = {type: type, body: body};
+        let ball = {type: type, body: body, cooldown:0};
         player.balls[ballIndex] = ball;
 
         let newBall = $(`
                 <div class="ball type_${ball.type.name} player_${player.index}" id="ball_${player.index}_${ballIndex}">
                     <div class="body" style="width:${ball.type.radius*2}px; height:${ball.type.radius*2}px; top:-${ball.type.radius}px; left:-${ball.type.radius}px"></div>
-                    <div class="effectCooldown"></div>
-                    <div class="effectRadius"></div>
+                    <svg class="effectCooldown">
+                        <path class="cooldownPath" fill="none" stroke="${player.ballColor}" stroke-width="2" />
+                    </svg>
+                    <svg class="effectRadius">
+                        <circle class="cooldownPath" fill="none" stroke="${player.ballColor}" stroke-linecap="round" stroke-dasharray="1,12" stroke-width="4" 
+                        cx="200" cy="200" r="${ball.type.effectRadius}"/>
+                    </svg>
                 </div>`);
                 $("#balls").append(newBall);
                 ball.graphic = newBall;
@@ -350,16 +386,18 @@
     }
 
     function triggerBall(player){
-        const type = player.actionTarget.type.name;
-        if (type=="water"){
-            triggerWater(player);
-        }
-        if (type=="air"){
-            triggerAir(player);
-        }
-        if (type=="fire"){
-            console.log(player.joystickTimer);
-            triggerFire(player);
+        const type = player.actionTarget.type;
+        console.log(player.actionTarget.cooldown+" ... "+type.cooldownLimit);
+        if (player.actionTarget.cooldown >= type.cooldownLimit) {
+            if (type.name=="water"){
+                triggerWater(player);
+            }
+            if (type.name=="air"){
+                triggerAir(player);
+            }
+            if (type.name=="fire"){
+                triggerFire(player);
+            }
         }
     }
 
@@ -367,21 +405,23 @@
         const ball = player.actionTarget;
         const ballX = ball.body.position.x;
         const ballY = ball.body.position.y;
-        const ballsInRange = findBallsWithinRange(ballX, ballY, 100);
+        const ballsInRange = findBallsWithinRange(ballX, ballY, ball.type.effectRadius);
         ballsInRange.forEach((ball2) => {
             if (ball2!=ball) {
                 const ball2X = ball2.body.position.x;
                 const ball2Y = ball2.body.position.y;
-                const velocity = getDistance(ballX, ballY, ball2X, ball2Y)/20;
+                const distance = getDistance(ballX, ballY, ball2X, ball2Y) - ball2.type.radius;
+                const velocity = (ball.type.effectRadius - distance)/20;
                 const angle = getAngle(ball2X, ball2Y, ballX, ballY);
-                console.log(ballX+","+ballY+" ... "+ ball2X+","+ball2Y+" ... "+velocity+","+angle);
                 launchBall2(ball2.body, velocity, angle);
             }
         });
+        ball.cooldown=0;
     }
 
     function triggerAir(player){
         launchBall(player);
+        ball.cooldown=0;
     }
     function triggerFire(player){
         if (player.joystickTimer>2){
@@ -394,8 +434,8 @@
                     removeBall(ball2);
                 }
             });
+            ball.cooldown=0;
         }
-        
     }
 
     function findBallsWithinRange(x, y, r){
@@ -403,13 +443,11 @@
         players.forEach( (player) => {
             player.balls.forEach( (ball) => {
                 if (ball) {
-                    console.log(ball);
-                    const distance = getDistance(x, y, ball.body.position.x, ball.body.position.y);
+                    const distance = getDistance(x, y, ball.body.position.x, ball.body.position.y) - ball.type.radius;
                     if (distance <= r) output.push(ball);
                 }
             });
         });
-        console.log(output);
         return output;
     }
 
@@ -425,12 +463,25 @@
         return angleRadians = Math.atan2(y2 - y1, x2 - x1);
     }
 
-    function log(msg){
-        $("#debug").append(msg+"<br/>")
+    function describeArc(x, y, r, startAngle, endAngle){
+            var start = polarToCartesian(x, y, r, endAngle);
+            var end = polarToCartesian(x, y, r, startAngle);
+            var largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+            var d = [
+                "M", start.x, start.y, 
+                "A", r, r, 0, largeArcFlag, 0, end.x, end.y
+            ].join(" ");
+            return d;
     }
-    $("#debug").click( ()=> {
-        $("#debug").html("");
-    })
+
+    function polarToCartesian(centerX, centerY, radius, angleInDegrees) {
+        var angleInRadians = (angleInDegrees-90) * Math.PI / 180.0;
+      
+        return {
+          x: centerX + (radius * Math.cos(angleInRadians)),
+          y: centerY + (radius * Math.sin(angleInRadians))
+        };
+      }
 
 // ================ CALL INIT ====================
     $( document ).ready(function() {
