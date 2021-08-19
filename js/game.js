@@ -97,6 +97,7 @@
                 joystickTimer: 0,
                 joystickActive: false,
                 launchCooldown: BOARD.LAUNCH_COOLDOWN_LIMIT,
+                unlaunchedBallIndex: -1,
             },
             {
                 index: 1,
@@ -114,6 +115,7 @@
                 joystickTimer: 0,
                 joystickActive: false,
                 launchCooldown: BOARD.LAUNCH_COOLDOWN_LIMIT,
+                unlaunchedBallIndex: -1,
             }
         ];
         goals = [];
@@ -172,20 +174,25 @@
             $("."+targetClass).removeClass(targetClass);
             const ballIndex = $(e.target).data('ball');
             const whichBall = player.balls[ballIndex];
-            if (whichBall===null) {
+            console.log(player.unlaunchedBallIndex);
+            if (whichBall==null && player.unlaunchedBallIndex<0) {
                 addBall(player, ballIndex);
                 player.actionMode = ACTION.LAUNCH;
                 player.actionTarget = player.balls[ballIndex];
+                player.unlaunchedBallIndex = ballIndex;
+                player.actionTarget.graphic.addClass(targetClass);
             }
-            else {
+            else if (whichBall!=null)  {
                 player.actionMode = ACTION.TRIGGER;
                 player.actionTarget = whichBall;
+                player.actionTarget.graphic.addClass(targetClass);
             }
-            player.actionTarget.graphic.addClass(targetClass);
+            
         })
         $('.button.launch').bind('touchstart', function(e){
             const player = players[ $(e.target).data('player') ];
-            const thisBall = player.balls[ $(e.target).data('ball') ];
+            const ballIndex = $(e.target).data('ball');
+            const thisBall = player.balls[ ballIndex ];
             if (thisBall){
                 const targetClass = "targeted"+player.index;
                 $("."+targetClass).removeClass(targetClass);
@@ -193,6 +200,7 @@
                 player.actionTarget = thisBall;
                 player.actionTarget.graphic.addClass(targetClass);
             }
+            console.log(ballIndex+"=="+player.unlaunchedBallIndex);
             
         })
 
@@ -376,13 +384,14 @@
 			isStatic: false,
 			restitution: 1,
             frictionAir: type.friction, 
+            friction: 0,
             density: type.density,
             render: {
                 opacity: 0
             }
 		});
 		Matter.World.add(engine.world, body);
-        let ball = {type: type, body: body, cooldown:0};
+        let ball = {type: type, body: body, cooldown:0, index: ballIndex};
         player.balls[ballIndex] = ball;
 
         let newBall = $(`
@@ -407,8 +416,16 @@
     }
 
     function launchBall(player){
-        let velocity = player.actionTarget.type.maxVelocity * player.joystickPercent;
-        launchBall2(player.actionTarget.body, velocity, player.joystickAngle);
+        const ball = player.actionTarget;
+        const velocity = ball.type.maxVelocity * player.joystickPercent;
+        launchBall2(ball.body, velocity, player.joystickAngle);
+        if (ball.index==player.unlaunchedBallIndex) player.unlaunchedBallIndex = -1;
+    }
+
+    function launchBall2(body, velocity, angle){
+        let vx = velocity * Math.cos(angle);
+        let vy = velocity * Math.sin(angle);
+        Matter.Body.setVelocity( body, {x: vx, y: vy});
     }
 
     function removeBall(ball){
@@ -421,12 +438,6 @@
                 }
             });
         });
-    }
-
-    function launchBall2(body, velocity, angle){
-        let vx = -velocity * Math.cos(angle);
-        let vy = -velocity * Math.sin(angle);
-        Matter.Body.setVelocity( body, {x: vx, y: vy});
     }
 
     function triggerBall(player){
@@ -448,14 +459,15 @@
         const ball = player.actionTarget;
         const ballX = ball.body.position.x;
         const ballY = ball.body.position.y;
-        const ballsInRange = findBallsWithinRange(ballX, ballY, ball.type.effectRadius);
+        const ballsInRange = findBallsWithinRange(ballX, ballY, ball.type.effectRadius, [ball]);
+        console.log("balls in range of water:",ballsInRange);
         ballsInRange.forEach((ball2) => {
             if (ball2!=ball) {
                 const ball2X = ball2.body.position.x;
                 const ball2Y = ball2.body.position.y;
                 const distance = getDistance(ballX, ballY, ball2X, ball2Y) - ball2.type.radius;
                 const velocity = (ball.type.effectRadius - distance)/20;
-                const angle = getAngle(ball2X, ball2Y, ballX, ballY);
+                const angle = getAngle(ballX, ballY, ball2X, ball2Y);
                 launchBall2(ball2.body, velocity, angle);
             }
         });
@@ -472,9 +484,10 @@
             const ball = player.actionTarget;
             const ballX = ball.body.position.x;
             const ballY = ball.body.position.y;
-            const ballsInRange = findBallsWithinRange(ballX, ballY, 50);
-            console.log("balls:"+ballsInRange);
+            const ballsInRange = findBallsWithinRange(ballX, ballY, 50, [ball]);
+            console.log("balls in range of fire:",ballsInRange);
             ballsInRange.forEach((ball2) => {
+                console.log("remove?",ball2);
                 if (ball2!=ball) {
                     console.log("remove",ball2);
                     removeBall(ball2);
@@ -484,13 +497,16 @@
         }
     }
 
-    function findBallsWithinRange(x, y, r){
+    function findBallsWithinRange(x, y, r, ballsToIgnore){
         const output = [];
         players.forEach( (player) => {
             player.balls.forEach( (ball) => {
                 if (ball) {
                     const distance = getDistance(x, y, ball.body.position.x, ball.body.position.y) - ball.type.radius;
-                    if (distance <= r) output.push(ball);
+                    const ignored = !ballsToIgnore || ballsToIgnore.includes(ball);
+                    if (distance <= r && !ignored) {
+                        output.push(ball);
+                    }
                 }
             });
         });
