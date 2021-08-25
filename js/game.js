@@ -6,6 +6,7 @@
 
 // ================ INITIALIZE GAME ====================
 	function init() {
+        log("init");
         initValues();
         initEngine();
         initLevel();
@@ -68,13 +69,13 @@
                 index: 0,
                 name: "launch",
                 onTouchStart: (x, y) => {
-                    console.log("launch start: "+x+","+y);
+                    log("launch start: "+x+","+y);
                 },
                 onTouchMove: (x, y) => {
-                    console.log("launch move: "+x+","+y);
+                    log("launch move: "+x+","+y);
                 },
                 onTouchEnd: (x, y) => {
-                    console.log("launch end: "+x+","+y);
+                    log("launch end: "+x+","+y);
                 },
             }
         ]
@@ -362,6 +363,10 @@
 
     function degreesToRadians(degrees){
         return (degrees-90) * Math.PI / 180.0;
+    }
+
+    function log(msg){
+        $("#debug").append(msg+"<br/>");
     }
 
 // ================ CALL INIT ====================
