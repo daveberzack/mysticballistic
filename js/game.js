@@ -162,7 +162,7 @@
 
         $('#container').bind('touchstart', function(e){
             e.preventDefault();
-            console.log("start");
+            log("start");
             const touch = e.targetTouches[0];
             const touchX = touch.pageX;
             const touchY = touch.pageY;
@@ -182,7 +182,7 @@
         })
 
         $('#container').bind('touchmove', function(e){
-            console.log("move");
+            log("move");
             e.preventDefault();
             const touch = e.targetTouches[0];
             const touchX = touch.pageX;
@@ -191,7 +191,7 @@
         })
 
         $('#container').bind('touchend touchcancel', function(e){
-            console.log("end");
+            log("end");
             e.preventDefault();
             modes[currentModeIndex].touchEnd(x,y);
         })

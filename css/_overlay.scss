@@ -6,17 +6,12 @@
     top: 0px;
 }
 
-#controls .button {
-    position:absolute;
-    width: 60px;
-    height: 60px;
-    background-size: cover;
-    right: 10px;
+#controls .player {
+    pointer-events: all;
+    position: absolute;
 }
 
-
 #controls #player0 {
-    position: absolute;
     top: 360px;
     right: 80px;
     -webkit-transform:rotate(180deg);
@@ -26,12 +21,16 @@
     transform: rotate(180deg);
 }
 #controls #player1 {
-    position: absolute;
     bottom:360px;
     left: 80px;
 }
 
-#controls .button{
+#controls .button {
+    position:absolute;
+    width: 60px;
+    height: 60px;
+    background-size: cover;
+    right: 10px;
     overflow: hidden;
     border-radius: 999px;
     background-size: cover;

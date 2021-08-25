@@ -46,6 +46,7 @@ body {
 
 #overlay {
   z-index: 4;
+  pointer-events: none;
 }
 
 #controls {
@@ -56,16 +57,12 @@ body {
   top: 0px;
 }
 
-#controls .button {
+#controls .player {
+  pointer-events: all;
   position: absolute;
-  width: 60px;
-  height: 60px;
-  background-size: cover;
-  right: 10px;
 }
 
 #controls #player0 {
-  position: absolute;
   top: 360px;
   right: 80px;
   -webkit-transform: rotate(180deg);
@@ -76,12 +73,16 @@ body {
 }
 
 #controls #player1 {
-  position: absolute;
   bottom: 360px;
   left: 80px;
 }
 
 #controls .button {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  background-size: cover;
+  right: 10px;
   overflow: hidden;
   border-radius: 999px;
   background-size: cover;
