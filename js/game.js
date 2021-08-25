@@ -1,20 +1,17 @@
 (() => {
     let COLOR, BOARD
-    let players, goals, currentPlayerIndex, currentBall, currentModeIndex;
+    let players, goals, currentPlayerIndex, currentBall, currentModeIndex, currentTouchX, currentTouchY;
 	let canvas, engine, render, runner;
 
 
 // ================ INITIALIZE GAME ====================
 	function init() {
-        log("init");
+        log("v1");
         initValues();
         initEngine();
         initLevel();
         initTouchHandlers();
         startTurn();
-        //setInterval(run, 20);
-        //addBall(players[0]);
-        //addBall(players[1]);
 	}
 
     function initValues() {
@@ -162,14 +159,18 @@
 
         $('#container').bind('touchstart', function(e){
             e.preventDefault();
-            log("start");
             const touch = e.targetTouches[0];
             const touchX = touch.pageX;
             const touchY = touch.pageY;
             const currentPlayer = players[currentPlayerIndex];
 
             // get closest ball or null if launch point
-            const closestBall = null;
+            let closestBall = getClosestBall({
+                x: touchX,
+                y: touchY,
+                owner: currentPlayer,
+                includeLaunchPoint: true
+            });
 
             //if launch point, add a ball and set currentBall
             if (closestBall === null){
@@ -178,22 +179,22 @@
             var currentBall = closestBall;
 
             //call move function
-            modes[currentModeIndex].onTouchStart(touchX, touchY);
+            const mode = modes[currentModeIndex];
+            console.log("start mode:"+currentModeIndex, mode);
+            mode.onTouchStart();
         })
 
         $('#container').bind('touchmove', function(e){
-            log("move");
             e.preventDefault();
             const touch = e.targetTouches[0];
-            const touchX = touch.pageX;
-            const touchY = touch.pageY;
-            modes[currentModeIndex].touchMove(touchX,touchY);
+            currentTouchX = touch.pageX;
+            currentTouchY = touch.pageY;
+            modes[currentModeIndex].touchMove();
         })
 
         $('#container').bind('touchend touchcancel', function(e){
-            log("end");
             e.preventDefault();
-            modes[currentModeIndex].touchEnd(x,y);
+            modes[currentModeIndex].touchEnd();
         })
 
     }
@@ -216,40 +217,6 @@
         $(".active-player").removeClass("active-player");
         $("#player"+currentPlayerIndex).addClass("active-player");
         setLaunchMode();
-    }
-
-    function checkForWin(){
-        if (players[0].score>=100) {
-            $("#message").html("Player 1 Won!")
-        }
-        if (players[1].score>=100) {
-            $("#message").html("Player 2 Won!")
-        }
-    }
-
-    function scoreGoals(){
-        goals.forEach((goal) => {
-            let player0BallsIn = players[0].balls.reduce( function(total, ball){
-                let output = total;
-                if (ball!==null) {
-                    let body = ball.body;
-                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) <= goal.r+ball.type.radius) {
-                        output++;    
-                    }
-                }
-                return output;
-            }, 0);
-            let player1BallsIn = players[1].balls.reduce( function(total, ball){
-                let output = total;
-                if (ball!==null) {
-                    let body = ball.body;
-                    if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r+ball.type.radius) output++;
-                }
-                return output;
-            }, 0);
-            players[0].score = Math.min(100, players[0].score + player0BallsIn);
-            players[1].score = Math.min(100, players[1].score + player1BallsIn);
-        })
     }
 
 
@@ -331,6 +298,33 @@
         return output;
     }
 
+    function getClosestBall(options){
+        let output = null;
+        let minDistance=99999;
+        players.forEach( (player) => {
+            if (!options.owner || options.owner==player){
+                player.balls.forEach( (ball) => {
+                    if (ball) {
+                        const distance = getDistance(options.x, options.y, ball.body.position.x, ball.body.position.y);
+                        const ignored = options.ballsToIgnore && options.ballsToIgnore.includes(ball);
+                        if (distance < minDistance && !ignored) {
+                            output = ball;
+                            minDistance = distance;
+                        }
+                    }
+                });
+            }
+            
+        });
+        if (options.includeLaunchPoint){
+            const distance = getDistance(options.x, options.y, players[currentPlayerIndex].launchX, players[currentPlayerIndex].launchY );
+            if (distance < minDistance) {
+                output = null;
+            }
+        }
+        return output;
+    }
+
 // ================ UTILITY FUNCTIONS ====================
 
     function getDistance(x1, y1, x2, y2){
@@ -376,6 +370,42 @@
 
 })();
 
+
+
+
+// function checkForWin(){
+//     if (players[0].score>=100) {
+//         $("#message").html("Player 1 Won!")
+//     }
+//     if (players[1].score>=100) {
+//         $("#message").html("Player 2 Won!")
+//     }
+// }
+
+// function scoreGoals(){
+//     goals.forEach((goal) => {
+//         let player0BallsIn = players[0].balls.reduce( function(total, ball){
+//             let output = total;
+//             if (ball!==null) {
+//                 let body = ball.body;
+//                 if (getDistance(goal.x, goal.y, body.position.x, body.position.y) <= goal.r+ball.type.radius) {
+//                     output++;    
+//                 }
+//             }
+//             return output;
+//         }, 0);
+//         let player1BallsIn = players[1].balls.reduce( function(total, ball){
+//             let output = total;
+//             if (ball!==null) {
+//                 let body = ball.body;
+//                 if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r+ball.type.radius) output++;
+//             }
+//             return output;
+//         }, 0);
+//         players[0].score = Math.min(100, players[0].score + player0BallsIn);
+//         players[1].score = Math.min(100, players[1].score + player1BallsIn);
+//     })
+// }
 
 
         /*
