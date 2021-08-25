@@ -1,13 +1,14 @@
 <!doctype html>
 <html>
     <head>
-        <title>Ballistic Mystic</title>
+        <title>Mystic Ballistic</title>
         <link rel="stylesheet" href="css/styles.css">
     </head>
     <body>
         <div id="all">
             <div id="background">
-                <div id="goal"></div>
+                <div id="goal0" class="goal"></div>
+                <div id="goal1" class="goal"></div>
             </div>
             <div id="container">
                 <canvas id="canvas"></canvas>
@@ -15,34 +16,25 @@
             <div id="balls">
             </div>
             <div id="overlay">
-                <div id="controls_0" class= "controls">
-                    <div class="button trigger b0" data-player="0" data-action="1" data-ball="0"></div>
-                    <div class="button trigger b1" data-player="0" data-action="1" data-ball="1"></div>
-                    <div class="button trigger b2" data-player="0" data-action="1" data-ball="2"></div>
-                    <div class="button trigger b3" data-player="0" data-action="1" data-ball="3"></div>
-                    <div id="joystick_0" class="joystick" data-player="0"></div>
-                    <svg class="joystickCooldown">
-                        <path id="cooldownPath0" fill="none" stroke="#FFFFFF44" stroke-width="50" />
-                    </svg>
-                    <div id="score_0" class="score">
-                        <div class="bar"></div>
+                <div id="controls">
+                    <div id="player0" class="player">
+                        <div class="score"></div>
+                        <div id="spell0-p0" class="button spell-button spell0-button" data-spell="0" data-player="0"></div>
+                        <div id="spell1-p0" class="button spell-button spell1-button" data-spell="1" data-player="0"></div>
+                        <div id="spell2-p0" class="button spell-button spell2-button" data-spell="2" data-player="0"></div>
+                        <div id="launch0" class="button launch-button" data-player="0"></div>
+                        <div id="done0" class="button done-button" data-player="0"></div>
                     </div>
-                </div>
-                <div id="controls_1" class="controls">
-                    <div class="button trigger b0" data-player="1" data-action="1" data-ball="0"></div>
-                    <div class="button trigger b1" data-player="1" data-action="1" data-ball="1"></div>
-                    <div class="button trigger b2" data-player="1" data-action="1" data-ball="2"></div>
-                    <div class="button trigger b3" data-player="1" data-action="1" data-ball="3"></div>
-                    <div id="joystick_1" class="joystick" data-player="1"></div>
-                    <svg class="joystickCooldown">
-                        <path id="cooldownPath1" fill="none" stroke="#00000044" stroke-width="50" />
-                    </svg>
-                    <div id="score_1" class="score">
-                        <div class="bar"></div>
+                    <div id="player1" class="player">
+                        <div class="score"></div>
+                        <div id="spell0-p1" class="button spell-button spell0-button" data-spell="0" data-player="1"></div>
+                        <div id="spell1-p1" class="button spell-button spell1-button" data-spell="1" data-player="1"></div>
+                        <div id="spell2-p1" class="button spell-button spell2-button" data-spell="2" data-player="1"></div>
+                        <div id="launch1" class="button launch-button" data-player="1"></div>
+                        <div id="done1" class="button done-button" data-player="1"></div>
                     </div>
                 </div>
                 <h1 id="message"></h1>
-                <p id="debug"></p>
             </div>
         </div>
         <script
@@ -55,14 +47,21 @@
 </html>
 
 <!-- TO DO
+    launch a new ball from starting point
+    check if click is closer to another ball; launch that one instead
 
+    cast spells: select spell and then click or flick ball (water: push)
+    air spell: extra launch
+    earth spell: immobile until next turn
+    fire spell: bank then hit to destroy
+
+later:
+    mana resource
+    other spells...
+    create a deck, which gets cycled through randomly
+
+    player-specific activation zones
+    environmental hazards
     refactor
 
-    make turn-based
-    all balls the same, applying spells to any ball
-
-    later...
-    one-off spells
-    add bg, overlay, sprite graphics
-    add music
 -->

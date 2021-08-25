@@ -1,6 +1,11 @@
-#goal {
+.goal {
     border-radius: 999px;
     position: absolute;
-    background: #FFFFFF33; 
     overflow: hidden;
+}
+#goal0 {
+    border: #FFFFFF dotted 3px;
+}
+#goal1 {
+    border: #000000 dotted 3px;
 }
