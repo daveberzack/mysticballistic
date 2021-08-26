@@ -1,8 +1,8 @@
 (() => {
 	let canvas, engine, render, runner;
-    let COLOR, BOARD, MODES, EFFECTS;
-    let players, goals;
-    let player, ball, mode, touchX, touchY, isTouchActive;
+    let COLOR, BOARD, MODES, EFFECTS, TARGETS;
+    let players, goals, buttons;
+    let player, ball, mode, touchX, touchY, isTouchActive, launchesRemaining;
     let effectsCanvas, effectsContext, w, h;
 // ================ DRAW EFFECTS ====================
 
@@ -25,27 +25,28 @@
             const distance = Math.min(getTouchDistance(), BOARD.MAX_PULLBACK_DISTANCE);
 
             const effect = mode.effect;
-            if (isTouchActive && effect.type==EFFECT_TYPES.AIM){
-                const lineEnd = polarToCartesian(ballX, ballY, distance, angle);
-                const color = effect.color || player.ballColor;
-                effectsContext.lineWidth = effect.lineWidth;
-                effectsContext.strokeStyle = color;
-                effectsContext.setLineDash(effect.lineDash);
-                effectsContext.beginPath();
-                effectsContext.moveTo(ballX, ballY);
-                effectsContext.lineTo(lineEnd.x, lineEnd.y);
-                effectsContext.stroke();
+            if (effect){
+                if (isTouchActive && effect.type==EFFECT_TYPES.AIM){
+                    const lineEnd = polarToCartesian(ballX, ballY, distance, angle);
+                    const color = effect.color || player.ballColor;
+                    effectsContext.lineWidth = effect.lineWidth;
+                    effectsContext.strokeStyle = color;
+                    effectsContext.setLineDash(effect.lineDash);
+                    effectsContext.beginPath();
+                    effectsContext.moveTo(ballX, ballY);
+                    effectsContext.lineTo(lineEnd.x, lineEnd.y);
+                    effectsContext.stroke();
+                }
+                else if (isTouchActive && effect.type==EFFECT_TYPES.AREA){
+                    const color = effect.color || player.ballColor;
+                    effectsContext.lineWidth = effect.lineWidth;
+                    effectsContext.strokeStyle = color;
+                    effectsContext.setLineDash(effect.lineDash);
+                    effectsContext.beginPath();
+                    effectsContext.arc(ballX, ballY, effect.radius, 0, 2 * Math.PI, false);
+                    effectsContext.stroke();
+                }
             }
-            else if (isTouchActive && effect.type==EFFECT_TYPES.AREA){
-                const color = effect.color || player.ballColor;
-                effectsContext.lineWidth = effect.lineWidth;
-                effectsContext.strokeStyle = color;
-                effectsContext.setLineDash(effect.lineDash);
-                effectsContext.beginPath();
-                effectsContext.arc(ballX, ballY, effect.radius, 0, 2 * Math.PI, false);
-                effectsContext.stroke();
-            }
-
         }
     }
 
@@ -91,10 +92,17 @@
             MAX_DRIVER_VELOCITY: 25,
             MAX_PUTTER_VELOCITY: 8,
             WALL_PADDING: 30,
-        }
+        };
+        
         EFFECT_TYPES = {
             AIM: 0,
             RADIUS: 1 
+        }
+        
+        TARGETS = {
+            BALL: 0,
+            GLOBAL: 1,
+            POINT: 2,
         }
     
         players = [
@@ -125,39 +133,60 @@
 
         MODES = {
             DRIVER: {
-                index: 0,
+                target: TARGETS.BALL,
                 effect: {
                     type: EFFECT_TYPES.AIM,
                     lineWidth: 7,
                     lineDash: [15, 5],
                 },
-                onTouchStart: () => { },
-                onTouchMove: () => { },
+                onTouchStart: () => { 
+                    if (launchesRemaining){
+                        isTouchActive = true;
+                        setBall();
+                        if (ball === null){
+                            ball = addBall(player);
+                        }
+                    }
+                },
                 onTouchEnd: () => {
-                    const pullbackPercent = Math.min(1, getTouchDistance()/BOARD.MAX_PULLBACK_DISTANCE);
-                    const velocity = BOARD.MAX_DRIVER_VELOCITY * pullbackPercent;
-                    const pullbackAngle = getTouchAngle();
-                    setBallVelocity(ball.body, -velocity, pullbackAngle)
+                    isTouchActive = false;
+                    if (launchesRemaining){
+                        const pullbackPercent = Math.min(1, getTouchDistance()/BOARD.MAX_PULLBACK_DISTANCE);
+                        const velocity = BOARD.MAX_DRIVER_VELOCITY * pullbackPercent;
+                        const pullbackAngle = getTouchAngle();
+                        setBallVelocity(ball.body, -velocity, pullbackAngle);
+                        launchesRemaining--;
+                    }
+                    
                 },
             },
             PUTTER: {
-                index: 1,
                 effect: {
                     type: EFFECT_TYPES.AIM,
                     lineWidth: 5,
                     lineDash: [5, 15],
                 },
-                onTouchStart: () => { },
-                onTouchMove: () => { },
+                onTouchStart: () => { 
+                    if (launchesRemaining){
+                        isTouchActive = true;
+                        setBall();
+                        if (ball === null){
+                            ball = addBall(player);
+                        }
+                    }
+                },
                 onTouchEnd: () => {
-                    const pullbackPercent = Math.min(1, getTouchDistance()/BOARD.MAX_PULLBACK_DISTANCE);
-                    const velocity = BOARD.MAX_PUTTER_VELOCITY * pullbackPercent;
-                    const pullbackAngle = getTouchAngle();
-                    setBallVelocity(ball.body, -velocity, pullbackAngle)
+                    isTouchActive = false;
+                    if (launchesRemaining){
+                        const pullbackPercent = Math.min(1, getTouchDistance()/BOARD.MAX_PULLBACK_DISTANCE);
+                        const velocity = BOARD.MAX_PUTTER_VELOCITY * pullbackPercent;
+                        const pullbackAngle = getTouchAngle();
+                        setBallVelocity(ball.body, -velocity, pullbackAngle);
+                        launchesRemaining--;
+                    }
                 },
             },
             SPLASH: {
-                index: 2,
                 effect: {
                     type: EFFECT_TYPES.AREA,
                     lineWidth: 5,
@@ -165,9 +194,12 @@
                     radius: 100,
                     color: "#0033CC",
                 },
-                onTouchStart: () => { },
-                onTouchMove: () => { },
+                onTouchStart: () => {
+                    setBall();
+                    isTouchActive = true;
+                },
                 onTouchEnd: () => {
+                    isTouchActive = false;
                     const ballX = ball.body.position.x;
                     const ballY = ball.body.position.y;
                     const targets = findBallsWithinRange(ballX, ballY, 120, [ball], null)
@@ -180,8 +212,34 @@
                         setBallVelocity(ball2.body, velocity, angle);
                     });
                 },
+            },
+            RELAUNCH: {
+                onModeEnd: () => {
+                    launchesRemaining++;
+                    setMode(MODES.DRIVER);
+                    updateButtons();
+                },
             }
         }
+
+        buttons = [
+            {
+                mode: MODES.DRIVER,
+                element: $("#driver-p0"),
+            },
+            {
+                mode: MODES.PUTTER,
+                element: $("#putter-p0"),
+            },
+            {
+                mode: MODES.SPLASH,
+                element: $("#spell0-p0"),
+            },
+            {
+                mode: MODES.RELAUNCH,
+                element: $("#spell1-p0"),
+            }
+        ]
     }
 
     function initEngine() {
@@ -248,39 +306,30 @@
     function initTouchHandlers() {
 
         $('.done-button').bind('touchstart', function(e){
-            startTurn();
+            nextTurn();
         })
 
         $('.mode-button').bind('touchstart', function(e){
             const buttonIndex = $(e.target).data("index");
-            let myMode = null;
-            if (buttonIndex==0) myMode = MODES.DRIVER;
-            else if (buttonIndex==1) myMode = MODES.PUTTER;
-            else if (buttonIndex==2) myMode = MODES.SPLASH;
-            setMode(buttonIndex, myMode);
+            let myMode = buttons[buttonIndex].mode;
+            setMode(myMode);
+            if (mode.onModeStart) mode.onModeStart();
+            updateButtons();
+        })
+
+        $('.mode-button').bind('touchend', function(e){
+            if (mode.onModeEnd) mode.onModeEnd();
+            updateButtons();
         })
 
         $('#container').bind('touchstart', function(e){
             e.preventDefault();
-            isTouchActive = true;
             const touch = e.targetTouches[0];
             touchX = touch.pageX;
             touchY = touch.pageY;
-            // get closest ball or null if launch point
-            let closestBall = getClosestBall({
-                x: touchX,
-                y: touchY,
-                owner: player,
-                includeLaunchPoint: true
-            });
-
-            //if launch point, add a ball and set current ball
-            if (closestBall === null){
-                closestBall = addBall(player);
-            }
-            ball = closestBall;
-
-            mode.onTouchStart();
+            
+            if (mode.onTouchStart) mode.onTouchStart();
+            updateButtons();
         })
 
         $('#container').bind('touchmove', function(e){
@@ -288,30 +337,47 @@
             const touch = e.targetTouches[0];
             touchX = touch.pageX;
             touchY = touch.pageY;
-            mode.onTouchMove();
+            if (mode.onTouchMove) mode.onTouchMove();
+            updateButtons();
         })
 
         $('#container').bind('touchend touchcancel', function(e){
             e.preventDefault();
-            isTouchActive = false;
-            mode.onTouchEnd();
+            if (mode.onTouchEnd) mode.onTouchEnd();
+            updateButtons();
+        })
+    }
+
+    function updateButtons() {
+        $(".active-mode").removeClass("active-mode");
+        buttons.forEach( (button) => {
+            if (button.mode == mode) button.element.addClass("active-mode");
         })
 
+        $(".launch").toggleClass("disabled", launchesRemaining<=0);
     }
 // ================ GAMEPLAY ====================
 
-    function setMode(buttonIndex, modeIndex){
-        mode = modeIndex;
-        $(".active-mode").removeClass("active-mode");
-        $(".mode"+buttonIndex+"-button").addClass("active-mode");
+    function setMode(modeIn){
+        mode = modeIn;
+        updateButtons();
     }
 
-    function startTurn() {
+    function nextTurn() {
+        endTurn();
         const newPlayerIndex = (player.index+1) % 2;
         player = players[newPlayerIndex];
+        startTurn();
+    }
+    function startTurn() {
         $(".active-player").removeClass("active-player");
         $("#player"+player.index).addClass("active-player");
+        launchesRemaining = 1;
         setMode(0, MODES.DRIVER);
+        updateButtons();
+    }
+    function endTurn() {
+
     }
 
 
@@ -339,8 +405,6 @@
         let body = Matter.Bodies.circle(player.launchX, player.launchY, BOARD.BALL_RADIUS, {
 			isStatic: false,
 			restitution: 1,
-            //frictionAir: type.friction, 
-            //density: type.density,
             friction: 0,
             render: {
                 fillStyle: color,
@@ -361,6 +425,15 @@
                     player.balls[ballIndex] = null;
                 }
             });
+        });
+    }
+
+    function setBall(){
+        ball = getClosestBall({
+            x: touchX,
+            y: touchY,
+            owner: player,
+            includeLaunchPoint: true
         });
     }
 

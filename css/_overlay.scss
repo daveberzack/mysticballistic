@@ -43,6 +43,10 @@
 #controls #player1 .button{
     filter: invert(1);
 }
+#controls .disabled {
+    pointer-events: none;
+    opacity: .1;
+}
 
 #controls .button.active-mode {
     background-color: #99999999;
