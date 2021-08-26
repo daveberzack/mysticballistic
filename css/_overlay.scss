@@ -12,7 +12,7 @@
 }
 
 #controls #player0 {
-    top: 360px;
+    top: 450px;
     right: 80px;
     -webkit-transform:rotate(180deg);
     -moz-transform: rotate(180deg);
@@ -21,7 +21,7 @@
     transform: rotate(180deg);
 }
 #controls #player1 {
-    bottom:360px;
+    bottom:450px;
     left: 80px;
 }
 
@@ -47,24 +47,28 @@
 #controls .button.active-mode {
     background-color: #99999999;
 }
-.spell0-button {
+#spell0-p0, #spell0-p1 {
     top: 10px;
     background-image: url("../img/water.svg");
 }
-.spell1-button {
+#spell1-p0, #spell1-p1 {
     top: 80px;
     background-image: url("../img/air.svg");
 }
-.spell2-button {
+#spell2-p0, #spell2-p1 {
     top: 150px;
     background-image: url("../img/earth.svg");
 }
-.launch-button {
+#putter-p0, #putter-p1 {
     top: 220px;
-    background-image: url("../img/launch.svg");
+    background-image: url("../img/putter.svg");
+}
+#driver-p0, #driver-p1 {
+    top: 290px;
+    background-image: url("../img/driver.svg");
 }
 .done-button {
-    top: 290px;
+    top: 360px;
     background-image: url("../img/cycle.svg");
 }
 
@@ -95,4 +99,5 @@
     background-color: #FFFFFF66;
     padding: 5px;
     font-size: 1.5em;
+    display: none;
 }
