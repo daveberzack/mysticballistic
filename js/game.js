@@ -298,13 +298,10 @@
         })
 
         $('.mode-button').bind('touchstart', function(e){
-            for (const button in buttons) {
-                console.log(`${button}:`, buttons[button]);
-                if (button.element == $(e.target)) {
-                    buttonSelected = button;
-                }
-            }
-
+            const myIndex = $(e.target).data("index");
+            const myName = $(e.target).data("name");
+            const myPlayer = $(e.target).data("player");
+            buttonSelected = buttons[myName];
             if (buttonSelected.mode.onModeStart) buttonSelected.mode.onModeStart();
             updateButtons();
         })
