@@ -12,7 +12,7 @@
 }
 
 #controls #player0 {
-    top: 450px;
+    top:520px;
     right: 80px;
     -webkit-transform:rotate(180deg);
     -moz-transform: rotate(180deg);
@@ -21,7 +21,7 @@
     transform: rotate(180deg);
 }
 #controls #player1 {
-    bottom:450px;
+    bottom:520px;
     left: 80px;
 }
 
@@ -45,44 +45,57 @@
 }
 #controls .disabled {
     pointer-events: none;
-    opacity: .1;
+    opacity: .2;
 }
 
 #controls .button.active-mode {
     background-color: #99999999;
 }
-#spell0-p0, #spell0-p1 {
-    top: 10px;
-    background-image: url("../img/water.svg");
-}
-#spell1-p0, #spell1-p1 {
-    top: 80px;
-    background-image: url("../img/air.svg");
-}
-#spell2-p0, #spell2-p1 {
-    top: 150px;
-    background-image: url("../img/earth.svg");
-}
-#putter-p0, #putter-p1 {
-    top: 220px;
-    background-image: url("../img/putter.svg");
-}
-#driver-p0, #driver-p1 {
-    top: 290px;
+
+#mode4-p0, #mode4-p1 {
+    top: 70px;
     background-image: url("../img/driver.svg");
 }
+#mode3-p0, #mode3-p1 {
+    top: 140px;
+    background-image: url("../img/air.svg");
+}
+#mode2-p0, #mode2-p1 {
+    top: 210px;
+    background-image: url("../img/water.svg");
+}
+#mode1-p0, #mode1-p1 {
+    top: 310px;
+    background-image: url("../img/driver.svg");
+}
+#mode0-p0, #mode0-p1 {
+    top: 380px;
+    background-image: url("../img/new.svg");
+}
 .done-button {
-    top: 360px;
+    top: 450px;
     background-image: url("../img/cycle.svg");
 }
 
+#player0 .text {
+    color: #000000;
+}
+#player1 .text {
+    color: #FFFFFF;
+}
 .player .score {
     position: absolute;
     background: #99999922;
-    bottom: 20px;
-    left: 340px;
-    height: 115px;
-    width: 70px;
+    top: -60px;
+    left: -55px;
+    font-size: 3em;
+    overflow: hidden;
+}
+.player .mana {
+    position: absolute;
+    top: 0px;
+    left: -50px;
+    font-size: 2em;
     overflow: hidden;
 }
 

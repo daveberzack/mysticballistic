@@ -17,21 +17,23 @@
             <div id="overlay">
                 <div id="controls">
                     <div id="player0" class="player">
-                        <div class="score"></div>
-                        <div id="driver-p0" class="launch button mode-button mode-button0" data-index="0" data-player="0"></div>
-                        <div id="putter-p0" class="launch button mode-button mode-button1" data-index="1" data-player="0"></div>
-                        <div id="spell0-p0" class="spell button mode-button mode-button2" data-index="2" data-player="0"></div>
-                        <div id="spell1-p0" class="spell button mode-button mode-button3" data-index="3" data-player="0"></div>
-                        <div id="spell2-p0" class="spell button mode-button mode-button4" data-index="4" data-player="0"></div>
+                        <div id="score0" class="score text">5</div>
+                        <div id="mana0" class="mana text">2</div>
+                        <div id="mode0-p0" class="button mode-button mode-button0" data-index="0" data-player="0"></div>
+                        <div id="mode1-p0" class="button mode-button mode-button0" data-index="1" data-player="0"></div>
+                        <div id="mode2-p0" class="button mode-button mode-button0" data-index="2" data-player="0"></div>
+                        <div id="mode3-p0" class="button mode-button mode-button0" data-index="3" data-player="0"></div>
+                        <div id="mode4-p0" class="button mode-button mode-button0" data-index="4" data-player="0"></div>
                         <div id="done0" class="button done-button" data-player="0"></div>
                     </div>
                     <div id="player1" class="player">
-                        <div class="score"></div>
-                        <div id="driver-p1" class="launch button mode-button mode-button0" data-index="0" data-player="1"></div>
-                        <div id="putter-p1" class="launch button mode-button mode-button1" data-index="1" data-player="1"></div>
-                        <div id="spell0-p1" class="spell button mode-button mode-button2" data-index="2" data-player="1"></div>
-                        <div id="spell1-p1" class="spell button mode-button mode-button3" data-index="3" data-player="1"></div>
-                        <div id="spell2-p1" class="spell button mode-button mode-button4" data-index="4" data-player="1"></div>
+                        <div id="score1" class="score text">4</div>
+                        <div id="mana1" class="mana text">2</div>
+                        <div id="mode0-p1" class="button mode-button mode-button0" data-index="0" data-player="1"></div>
+                        <div id="mode1-p1" class="button mode-button mode-button0" data-index="1" data-player="1"></div>
+                        <div id="mode2-p1" class="button mode-button mode-button0" data-index="2" data-player="1"></div>
+                        <div id="mode3-p1" class="button mode-button mode-button0" data-index="3" data-player="1"></div>
+                        <div id="mode4-p1" class="button mode-button mode-button0" data-index="4" data-player="1"></div>
                         <div id="done1" class="button done-button" data-player="1"></div>
                     </div>
                 </div>
@@ -50,17 +52,23 @@
 
 <!-- TO DO
 
-    air spell: extra launch
-    mana resource
+    fix things
 
-    (status effect) earth spell: immobile until next turn
+    limit: 1 use of each action per turn
+
+    scoring (1 point per ball in goal at end of round)
 
     spell delay with graphic
 
+    (status effect) earth spell: immobile until next turn
 
-later:
+
+
     other spells...
     create a deck, which gets cycled through randomly
+
+
+later:
     player-specific activation zones
     environmental hazards
     refactor
