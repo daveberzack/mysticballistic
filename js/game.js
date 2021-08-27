@@ -1,8 +1,7 @@
 (() => {
 	let canvas, engine, render, runner;
-    let COLOR, BOARD, MODES, EFFECTS, TARGETS;
-    let players, goals, buttons;
-    let player, ball, touchX, touchY, isTouchActive, turnCount, buttonSelected;
+    let COLOR, BOARD, MODES, MODIFIER_TYPES;
+    let players, player, ball, touchX, touchY, isTouchActive, turnCount, buttonSelected;
     let effectsCanvas, effectsContext, w, h;
 // ================ DRAW EFFECTS ====================
 
@@ -18,7 +17,8 @@
     function redrawEffects() {
         effectsContext.clearRect(0, 0, canvas.width, canvas.height);
         
-        if (ball){
+        //selected ball
+        if (ball && buttonSelected){
             const ballX = ball.body.position.x;
             const ballY = ball.body.position.y;
             const angle  = getTouchAngle();
@@ -48,6 +48,27 @@
                 }
             }
         }
+
+        //all balls with modifiers 
+        players.forEach( (p) => {
+            p.balls.forEach( (b) => {
+                //console.log(b.modifiers);
+                b.modifiers.forEach( (m) => {
+                    const bX = b.body.position.x;
+                    const bY = b.body.position.y;
+                    if (m.type==MODIFIER_TYPES.STATIC){
+                        const color = m.color || player.ballColor;
+                        effectsContext.lineWidth = 5;
+                        effectsContext.strokeStyle = "#CCCC00CC";
+                        effectsContext.setLineDash([1,0]);
+                        effectsContext.beginPath();
+                        effectsContext.arc(bX, bY, BOARD.BALL_RADIUS+10, 0, 2 * Math.PI, false);
+                        effectsContext.stroke();
+                    }
+
+                })
+            });
+        });
     }
 
 // ================ INITIALIZE GAME ====================
@@ -72,10 +93,6 @@
             WALL0: "#FFFFFF",
             WALL1: "#000000",
         };
-        EFFECTS = {
-            AIM: 0,
-            AREA: 1
-        };
 
         BOARD = {
             HEIGHT: $(window).innerHeight(),
@@ -84,7 +101,6 @@
             CONTROL_WIDTH: 80,
             CONTROL_HEIGHT: 550,
             VERTICAL_MARGIN: 3,
-            SCORE_BAR_HEIGHT: 115,
             BALL_RADIUS: 15,
             GOAL_RADIUS: 125,
             EXISTING_BALL_PREFERRED_MARGIN: 10,
@@ -92,7 +108,8 @@
             MAX_LAUNCH_VELOCITY: 30,
             WALL_PADDING: 30,
             MAX_MANA: 5,
-            MANA_PER_ROUND: 3,
+            MANA_PER_ROUND: 4,
+            SCORE_TO_WIN: 11,
         };
         
         EFFECT_TYPES = {
@@ -100,35 +117,20 @@
             RADIUS: 1 
         }
         
-        TARGETS = {
-            BALL: 0,
-            GLOBAL: 1,
-            POINT: 2,
-        }
-    
-        players = [
-            {
-                index: 0,
-                ballColor: COLOR.BALL0,
-                launchX: 100,
-                launchY: 200,
-                balls: [],
-                goals: [],
-                score: 0,
-                mana: 0,
+        MODIFIER_TYPES = {
+            STATIC: {
+                name:"STATIC",
+                add: (me) => {
+                    setBallVelocity(me.target.body, 0, 0);                        
+                    me.target.body.isStatic = true;
+                },
+                remove: (me) => {
+                    setBallVelocity(me.target.body, 0, 0); 
+                    me.target.body.isStatic = false;
+                }
             },
-            {
-                index: 1,
-                ballColor: COLOR.BALL1,
-                launchX: BOARD.WIDTH-100,
-                launchY: BOARD.HEIGHT-200,
-                balls: [],
-                goals: [],
-                score: 0,
-                mana: 0,
-            }
-        ];
-        player= players[1];
+        }
+
 
         MODES = {
             LAUNCH: {
@@ -140,31 +142,49 @@
                     lineDash: [15, 5],
                 },
                 onTouchStart: () => { 
-                    if (buttonSelected.mode.cost > player.mana) return;
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     setBall();                        
                     isTouchActive = true;
                 },
                 onTouchEnd: () => {
-                    if (isTouchActive && ball){
+                    if (buttonSelected && isTouchActive && ball){
                         player.mana -= buttonSelected.mode.cost;
                         const pullbackPercent = Math.min(1, getTouchDistance()/BOARD.MAX_PULLBACK_DISTANCE);
                         const velocity = BOARD.MAX_LAUNCH_VELOCITY * pullbackPercent * pullbackPercent;
                         const pullbackAngle = getTouchAngle();
                         setBallVelocity(ball.body, -velocity, pullbackAngle);                        
                         isTouchActive = false;
+                        deactivateButton();
+                        updateButtons();
                     }
-                    
                 },
             },
             ADD: {
                 name: "ADD",
                 cost: 1,
                 onModeEnd: () => {
-                    if (buttonSelected.mode.cost > player.mana) return;
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     player.mana -= buttonSelected.mode.cost;
                     addBall(player);
-                    buttonSelected = buttons.LAUNCH;
+                    deactivateButton();
+                    buttonSelected = player.buttons.LAUNCH;
                     updateButtons();
+                },
+            },
+            STONE: {
+                name: "STONE",
+                cost: 1,
+                onTouchStart: () => { 
+                    console.log(ball); 
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
+                    setBall();      
+                    const m = {
+                        type: MODIFIER_TYPES.STATIC,
+                        target: ball,
+                        turnsRemaining: 2,
+                    }
+                    m.type.add(m);
+                    ball.modifiers.push(m);
                 },
             },
             SPLASH: {
@@ -178,14 +198,13 @@
                     color: "#0033CC",
                 },
                 onTouchStart: () => {
-                    if (buttonSelected.mode.cost > player.mana) return;
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     setBall();
                     isTouchActive = true;
-                    
                 },
                 onTouchEnd: () => {
                     isTouchActive = false;
-                    if (ball){
+                    if (buttonSelected  && ball){
                         player.mana -= buttonSelected.mode.cost;
                         const ballX = ball.body.position.x;
                         const ballY = ball.body.position.y;
@@ -198,34 +217,94 @@
                             const angle = getAngle(ballX, ballY, ball2X, ball2Y);
                             setBallVelocity(ball2.body, velocity, angle);
                         });
+                        deactivateButton();
                         updateButtons();
                     }
                 },
             }
         }
-        
-        buttons = {
-            ADD: {
-                mode: MODES.ADD,
-                element: $(".mode-button0"),
+    
+        players = [
+            {
+                index: 0,
+                name: "White",
+                ballColor: COLOR.BALL0,
+                launchX: 100,
+                launchY: 200,
+                balls: [],
+                goals: [],
+                score: 0,
+                mana: 0,
+
+                buttons: {
+                    ADD: {
+                        mode: MODES.ADD,
+                        element: $("#mode0-p0"),
+                        isUsed: false,
+                    },
+                    LAUNCH: {
+                        mode: MODES.LAUNCH,
+                        element: $("#mode1-p0"),
+                        isUsed: false,
+                    },
+                    SPELL0: {
+                        mode: MODES.SPLASH,
+                        element: $("#mode2-p0"),
+                        isUsed: false,
+                    },
+                    SPELL1: {
+                        mode: MODES.STONE,
+                        element: $("#mode3-p0"),
+                        isUsed: false,
+                    },
+                    SPELL2: {
+                        mode: MODES.LAUNCH,
+                        element: $("#mode4-p0"),
+                        isUsed: false,
+                    },
+                }
             },
-            LAUNCH: {
-                mode: MODES.LAUNCH,
-                element: $(".mode-button1"),
-            },
-            SPELL0: {
-                mode: MODES.SPLASH,
-                element: $(".mode-button2"),
-            },
-            SPELL1: {
-                mode: MODES.LAUNCH,
-                element: $(".mode-button3"),
-            },
-            SPELL3: {
-                mode: MODES.LAUNCH,
-                element: $(".mode-button4"),
-            },
-        }
+            {
+                index: 1,
+                name: "Black",
+                ballColor: COLOR.BALL1,
+                launchX: BOARD.WIDTH-100,
+                launchY: BOARD.HEIGHT-200,
+                balls: [],
+                goals: [],
+                score: 0,
+                mana: 0,
+
+                buttons: {
+                    ADD: {
+                        mode: MODES.ADD,
+                        element: $("#mode0-p1"),
+                        isUsed: false,
+                    },
+                    LAUNCH: {
+                        mode: MODES.LAUNCH,
+                        element: $("#mode1-p1"),
+                        isUsed: false,
+                    },
+                    SPELL0: {
+                        mode: MODES.SPLASH,
+                        element: $("#mode2-p1"),
+                        isUsed: false,
+                    },
+                    SPELL1: {
+                        mode: MODES.STONE,
+                        element: $("#mode3-p1"),
+                        isUsed: false,
+                    },
+                    SPELL2: {
+                        mode: MODES.LAUNCH,
+                        element: $("#mode4-p1"),
+                        isUsed: false,
+                    },
+                }
+            }
+        ];
+        player= players[1];
 
         turnCount=0;
     }
@@ -260,8 +339,8 @@
 			addWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, BOARD.CONTROL_HEIGHT, COLOR.WALL1), //p1 controls
             addRoundWall(BOARD.WIDTH, BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, COLOR.WALL0),
             addRoundWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, COLOR.WALL1),
-            addWall(-150, 450, 500, 25, COLOR.WALL, 45), //obstacle 1
-            addWall(BOARD.WIDTH-350, BOARD.HEIGHT-450, 500, 25, COLOR.WALL, 45), //obstacle 1
+            //addWall(-150, 450, 500, 25, COLOR.WALL, 45), //obstacle 1
+            //addWall(BOARD.WIDTH-350, BOARD.HEIGHT-450, 500, 25, COLOR.WALL, 45), //obstacle 1
 
         ]);
 
@@ -301,13 +380,15 @@
             const myIndex = $(e.target).data("index");
             const myName = $(e.target).data("name");
             const myPlayer = $(e.target).data("player");
-            buttonSelected = buttons[myName];
+            buttonSelected = player.buttons[myName];
             if (buttonSelected.mode.onModeStart) buttonSelected.mode.onModeStart();
             updateButtons();
         })
 
         $('.mode-button').bind('touchend', function(e){
-            if (buttonSelected.mode.onModeEnd) buttonSelected.mode.onModeEnd();
+            if (buttonSelected && buttonSelected.mode.onModeEnd) {
+                buttonSelected.mode.onModeEnd();
+            }
             updateButtons();
         })
 
@@ -316,7 +397,9 @@
             const touch = e.targetTouches[0];
             touchX = touch.pageX;
             touchY = touch.pageY;
-            if (buttonSelected.mode.onTouchStart) buttonSelected.mode.onTouchStart();
+            if (buttonSelected && buttonSelected.mode.onTouchStart) {
+                buttonSelected.mode.onTouchStart();
+            }
             updateButtons();
         })
 
@@ -325,20 +408,32 @@
             const touch = e.targetTouches[0];
             touchX = touch.pageX;
             touchY = touch.pageY;
-            if (buttonSelected.mode.onTouchMove) buttonSelected.mode.onTouchMove();
+            if (buttonSelected && buttonSelected.mode.onTouchMove) {
+                buttonSelected.mode.onTouchMove();
+            }
             updateButtons();
         })
 
         $('#container').bind('touchend touchcancel', function(e){
             e.preventDefault();
-            if (buttonSelected.mode.onTouchEnd) buttonSelected.mode.onTouchEnd();
+            if (buttonSelected && buttonSelected.mode.onTouchEnd) {
+                buttonSelected.mode.onTouchEnd();
+            }
             updateButtons();
         })
     }
 
     function updateButtons() {
         $(".active-mode").removeClass("active-mode");
-        buttonSelected.element.addClass("active-mode");
+        if (buttonSelected && !buttonSelected.isUsed){
+            buttonSelected.element.addClass("active-mode");
+        }
+
+        for (b in player.buttons){
+            const button = player.buttons[b];
+            const disableMe = button.isUsed || button.mode.cost>player.mana;
+            button.element.toggleClass("disabled", disableMe);
+        };
 
         $("#mana0").html(players[0].mana);
         $("#mana1").html(players[1].mana);
@@ -359,14 +454,55 @@
         launchesRemaining = 1;
         player.mana = Math.min(BOARD.MAX_MANA, player.mana+BOARD.MANA_PER_ROUND);
         if (turnCount<2){
-            buttonSelected = buttons.ADD;
+            buttonSelected = player.buttons.ADD;
             MODES.ADD.onModeEnd();
         }
-        buttonSelected = buttons.LAUNCH;
+        buttonSelected = player.buttons.LAUNCH;
+        activateButtons();
         updateButtons();
     }
     function endTurn() {
+        scoreBalls();
+        decrementModifiers();
         turnCount++;
+    }
+    function deactivateButton() {
+        buttonSelected.isUsed = true;
+        buttonSelected = null;
+    }
+    function activateButtons() {
+        for (b in player.buttons){
+            player.buttons[b].isUsed = false;
+        }
+    }
+
+    function scoreBalls(){
+        player.balls.forEach( (b) => {
+            player.goals.forEach( (g) => {
+                const ballX = b.body.position.x;
+                const ballY = b.body.position.y;
+                if ( getDistance(ballX, ballY, g.x, g.y) < g.r ){
+                    player.score += 1;
+                }
+            });
+        });
+        if (player.score>=BOARD.SCORE_TO_WIN){
+            $(".message").html(player.name+" Won!").addClass("shown");
+        }
+    }
+
+    function decrementModifiers() {
+        players.forEach( (p) => {
+            p.balls.forEach( (b) => {
+                b.modifiers.forEach( (m, mIndex) => {
+                    m.turnsRemaining--;
+                    if (m.turnsRemaining<1){
+                        m.type.remove(m);
+                        b.modifiers.splice(mIndex, 1); //indexing issue with foreach?
+                    }
+                })
+            });
+        });
     }
 
 // ================ MANAGING PHYSICS ====================
@@ -399,7 +535,7 @@
             }
 		});
 		Matter.World.add(engine.world, body);
-        let ball = {body: body};
+        let ball = {body: body, modifiers: []};
         player.balls.push(ball);
         return ball;
     }
@@ -531,40 +667,3 @@
     });
 
 })();
-
-
-
-
-// function checkForWin(){
-//     if (players[0].score>=100) {
-//         $("#message").html("Player 1 Won!")
-//     }
-//     if (players[1].score>=100) {
-//         $("#message").html("Player 2 Won!")
-//     }
-// }
-
-// function scoreGoals(){
-//     goals.forEach((goal) => {
-//         let player0BallsIn = players[0].balls.reduce( function(total, ball){
-//             let output = total;
-//             if (ball!==null) {
-//                 let body = ball.body;
-//                 if (getDistance(goal.x, goal.y, body.position.x, body.position.y) <= goal.r+ball.type.radius) {
-//                     output++;    
-//                 }
-//             }
-//             return output;
-//         }, 0);
-//         let player1BallsIn = players[1].balls.reduce( function(total, ball){
-//             let output = total;
-//             if (ball!==null) {
-//                 let body = ball.body;
-//                 if (getDistance(goal.x, goal.y, body.position.x, body.position.y) < goal.r+ball.type.radius) output++;
-//             }
-//             return output;
-//         }, 0);
-//         players[0].score = Math.min(100, players[0].score + player0BallsIn);
-//         players[1].score = Math.min(100, players[1].score + player1BallsIn);
-//     })
-// }

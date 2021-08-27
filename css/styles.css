@@ -115,7 +115,7 @@ body {
 
 #mode3-p0, #mode3-p1 {
   top: 140px;
-  background-image: url("../img/air.svg");
+  background-image: url("../img/earth.svg");
 }
 
 #mode2-p0, #mode2-p1 {
@@ -163,13 +163,33 @@ body {
   overflow: hidden;
 }
 
-#message {
+.message {
   position: absolute;
   text-align: center;
-  top: 200px;
+  top: 150px;
   left: 0px;
-  width: 100%;
+  font-size: 5em;
+  padding: 30px 40px 30px 30px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  overflow: hidden;
+  color: #000000;
+  background: #333333CC;
+  border: 3px solid #000000;
+  border-left: 0px;
+  white-space: nowrap;
+  display: none;
+}
+
+#player0 .message {
   color: #FFFFFF;
+  background: #CCCCCCCC;
+  border: 3px solid #FFFFFF;
+  border-left: 0px;
+}
+
+.message.shown {
+  display: block;
 }
 
 #debug {

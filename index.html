@@ -25,6 +25,7 @@
                         <div id="mode3-p0" class="button mode-button mode-button3" data-index="3" data-name="SPELL1" data-player="0"></div>
                         <div id="mode4-p0" class="button mode-button mode-button4" data-index="4" data-name="SPELL2" data-player="0"></div>
                         <div id="done0" class="button done-button" data-player="0"></div>
+                        <h1 class="message"></h1>
                     </div>
                     <div id="player1" class="player">
                         <div id="score1" class="score text">4</div>
@@ -35,9 +36,9 @@
                         <div id="mode3-p1" class="button mode-button mode-button3" data-index="3" data-name="SPELL1" data-player="1"></div>
                         <div id="mode4-p1" class="button mode-button mode-button4" data-index="4" data-name="SPELL2" data-player="1"></div>
                         <div id="done1" class="button done-button" data-player="1"></div>
+                        <h1 class="message"></h1>
                     </div>
                 </div>
-                <h1 id="message"></h1>
                 <p id="debug"></p>
             </div>
         </div>
@@ -52,26 +53,22 @@
 
 <!-- TO DO
 
-    fix things
+    aura effect: push away while within aura
 
-    limit: 1 use of each action per turn
+    launch projectile
 
-    scoring (1 point per ball in goal at end of round)
-
-    spell delay with graphic
-
-    (status effect) earth spell: immobile until next turn
-
-
+    launch ghost projectile that triggers on stop
 
     other spells...
+
     create a deck, which gets cycled through randomly
 
 
 later:
-    player-specific activation zones
+    scrolling if near edge
     environmental hazards
     refactor
+    spell delay with graphic
 
 
 spell ideas: 
@@ -91,4 +88,8 @@ spell ideas:
     ...swap locations
     change global velocity/friction during this turn or next turn
 
+
+    wind
+    shadow (hazard)
+    light can destroy shadow
 -->
