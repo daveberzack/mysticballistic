@@ -52,20 +52,8 @@
         //all balls with modifiers 
         players.forEach( (p) => {
             p.balls.forEach( (b) => {
-                //console.log(b.modifiers);
                 b.modifiers.forEach( (m) => {
-                    const bX = b.body.position.x;
-                    const bY = b.body.position.y;
-                    if (m.type==MODIFIER_TYPES.STATIC){
-                        const color = m.color || player.ballColor;
-                        effectsContext.lineWidth = 5;
-                        effectsContext.strokeStyle = "#CCCC00CC";
-                        effectsContext.setLineDash([1,0]);
-                        effectsContext.beginPath();
-                        effectsContext.arc(bX, bY, BOARD.BALL_RADIUS+10, 0, 2 * Math.PI, false);
-                        effectsContext.stroke();
-                    }
-
+                    if (m.type.drawEffect) m.type.drawEffect(m, effectsContext);
                 })
             });
         });
@@ -79,9 +67,10 @@
         initTouchHandlers();
         startTurn();
         initEffects();
-        setInterval(run, 20);
+        setInterval(tick, 20);
 	}
-    function run() {
+    function tick() {
+        triggerModifiersForTick();
         redrawEffects();
     }
 
@@ -120,13 +109,72 @@
         MODIFIER_TYPES = {
             STATIC: {
                 name:"STATIC",
-                add: (me) => {
+                onAdd: (me) => {
                     setBallVelocity(me.target.body, 0, 0);                        
                     me.target.body.isStatic = true;
                 },
-                remove: (me) => {
+                onRemove: (me) => {
                     setBallVelocity(me.target.body, 0, 0); 
                     me.target.body.isStatic = false;
+                },
+                onTurnEnd: (me) => {
+                    me.turnCounter++;
+                    if (me.turnCounter>1) {
+                        removeModifier(me.target, me)
+                    }
+                },
+                drawEffect: (me, effectsContext) => {
+                    const b = me.target;
+                    const bX = b.body.position.x;
+                    const bY = b.body.position.y;
+
+                    effectsContext.lineWidth = 5;
+                    effectsContext.strokeStyle = "#CCCC00CC";
+                    effectsContext.setLineDash([1,0]);
+                    effectsContext.beginPath();
+                    effectsContext.arc(bX, bY, BOARD.BALL_RADIUS+10, 0, 2 * Math.PI, false);
+                    effectsContext.stroke();
+                }
+
+            },
+            ATTACK: {
+                name:"ATTACK",
+                onAdd: (me) => {
+
+                },
+                onRemove: (me) => {
+
+                },
+                onTick: (me) => {
+                    // me.tickCounter++;
+                    // if (me.tickCounter%20==0){
+                    //     console.log("attack Tick:"+me.tickCounter);
+                    // }
+                },
+                onTurnEnd: (me) => {
+                    removeModifier(me.target, me)
+                },
+                onCollision: (me, other) => {
+                    //console.log("Attack - collided");
+                    //console.log("me",me);
+                    //console.log("other",other);
+                    if (other) setTimeout( function() {removeBall(other); }, 20 );
+                    else (console.log("wall"));
+                },
+                onStop : (me) => {
+                    console.log("attack stop");
+                },
+                drawEffect: (me, effectsContext) => {
+                    const b = me.target;
+                    const bX = b.body.position.x;
+                    const bY = b.body.position.y;
+
+                    effectsContext.lineWidth = 5;
+                    effectsContext.strokeStyle = "#FF0000CC";
+                    effectsContext.setLineDash([5,10]);
+                    effectsContext.beginPath();
+                    effectsContext.arc(bX, bY, BOARD.BALL_RADIUS+10, 0, 2 * Math.PI, false);
+                    effectsContext.stroke();
                 }
             },
         }
@@ -156,6 +204,18 @@
                         isTouchActive = false;
                         deactivateButton();
                         updateButtons();
+
+                        const checkForStopInterval = setInterval(function() {
+                            console.log("going "+ball.body.velocity, ball.body);
+                            if ( Math.abs(ball.body.velocity.x)+Math.abs(ball.body.velocity.y)<.1 ) {
+                                console.log("done", ball);
+                                ball.modifiers.forEach( m => {
+                                    console.log("m",m);
+                                    m.type.onStop(m);
+                                });
+                                clearInterval(checkForStopInterval);
+                            };
+                        }, 100);
                     }
                 },
             },
@@ -175,15 +235,14 @@
                 name: "STONE",
                 cost: 1,
                 onTouchStart: () => { 
-                    console.log(ball); 
                     if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     setBall();      
                     const m = {
                         type: MODIFIER_TYPES.STATIC,
                         target: ball,
-                        turnsRemaining: 2,
+                        turnCounter: 0,
                     }
-                    m.type.add(m);
+                    m.type.onAdd(m);
                     ball.modifiers.push(m);
                 },
             },
@@ -221,7 +280,23 @@
                         updateButtons();
                     }
                 },
-            }
+            },
+            FIRE: {
+                name: "FIRE",
+                cost: 1,
+                onTouchStart: () => { 
+                    console.log("fire "+ball); 
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
+                    setBall();      
+                    const m = {
+                        type: MODIFIER_TYPES.ATTACK,
+                        target: ball,
+                        tickCounter: 0,
+                    }
+                    m.type.onAdd(m);
+                    ball.modifiers.push(m);
+                },
+            },
         }
     
         players = [
@@ -258,7 +333,7 @@
                         isUsed: false,
                     },
                     SPELL2: {
-                        mode: MODES.LAUNCH,
+                        mode: MODES.FIRE,
                         element: $("#mode4-p0"),
                         isUsed: false,
                     },
@@ -297,7 +372,7 @@
                         isUsed: false,
                     },
                     SPELL2: {
-                        mode: MODES.LAUNCH,
+                        mode: MODES.FIRE,
                         element: $("#mode4-p1"),
                         isUsed: false,
                     },
@@ -327,6 +402,18 @@
 		Matter.Render.run(render);
 		runner = Matter.Runner.create();
 		Matter.Runner.run(runner, engine);
+
+        Matter.Events.on(engine, "collisionStart", function(e) {
+            e.pairs.forEach( pair => {
+                if (pair.bodyA.ball) pair.bodyA.ball.modifiers.forEach( m => {
+                    m.type.onCollision(pair.bodyA.ball, pair.bodyB.ball);
+                });
+                if (pair.bodyB.ball) pair.bodyB.ball.modifiers.forEach( m => {
+                    m.type.onCollision(pair.bodyB.ball, pair.bodyA.ball);
+                });
+            })
+        })
+
     }
 
     function initLevel(){
@@ -463,7 +550,7 @@
     }
     function endTurn() {
         scoreBalls();
-        decrementModifiers();
+        triggerModifiersForTurnEnd()
         turnCount++;
     }
     function deactivateButton() {
@@ -474,6 +561,26 @@
         for (b in player.buttons){
             player.buttons[b].isUsed = false;
         }
+    }
+
+    function triggerModifiersForTurnEnd(){
+        players.forEach( (p) => {
+            p.balls.forEach( (b) => {
+                b.modifiers.forEach ( (m) => {
+                    if (m.type.onTurnEnd) m.type.onTurnEnd(m);
+                })
+            })
+        })
+    }
+
+    function triggerModifiersForTick(){
+        players.forEach( (p) => {
+            p.balls.forEach( (b) => {
+                b.modifiers.forEach ( (m) => {
+                    if (m.type.onTick) m.type.onTick(m);
+                })
+            })
+        })
     }
 
     function scoreBalls(){
@@ -491,19 +598,6 @@
         }
     }
 
-    function decrementModifiers() {
-        players.forEach( (p) => {
-            p.balls.forEach( (b) => {
-                b.modifiers.forEach( (m, mIndex) => {
-                    m.turnsRemaining--;
-                    if (m.turnsRemaining<1){
-                        m.type.remove(m);
-                        b.modifiers.splice(mIndex, 1); //indexing issue with foreach?
-                    }
-                })
-            });
-        });
-    }
 
 // ================ MANAGING PHYSICS ====================
 
@@ -532,11 +626,12 @@
             friction: 0,
             render: {
                 fillStyle: color,
-            }
+            },
 		});
 		Matter.World.add(engine.world, body);
         let ball = {body: body, modifiers: []};
         player.balls.push(ball);
+        body.ball = ball;
         return ball;
     }
 
@@ -550,6 +645,15 @@
                 }
             });
         });
+    }
+
+    function removeModifier(b, modifier){
+        b.modifiers.forEach( (m, mIndex) => {
+            if (m==modifier){
+                m.type.onRemove(modifier);
+                b.modifiers.splice(mIndex, 1);
+            }
+        })
     }
 
     function setBall(){
