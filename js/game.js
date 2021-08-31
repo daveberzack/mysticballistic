@@ -99,6 +99,7 @@
             MAX_MANA: 5,
             MANA_PER_ROUND: 4,
             SCORE_TO_WIN: 11,
+            COLLISION_DELAY: 20,
         };
         
         EFFECT_TYPES = {
@@ -137,6 +138,43 @@
                 }
 
             },
+            REPEL: {
+                name:"REPEL",
+                onTurnEnd: (me) => {
+                    me.turnCounter++;
+                    if (me.turnCounter>3) {
+                        removeModifier(me.target, me)
+                    }
+                },
+                drawEffect: (me, effectsContext) => {
+                    const b = me.target;
+                    const bX = b.body.position.x;
+                    const bY = b.body.position.y;
+
+                    effectsContext.lineWidth = 5;
+                    effectsContext.strokeStyle = "#0099FFCC";
+                    effectsContext.setLineDash([5,10]);
+                    effectsContext.beginPath();
+                    effectsContext.arc(bX, bY, 150, 0, 2 * Math.PI, false);
+                    effectsContext.stroke();
+                },
+                onTick: (me) => {
+                    b = me.target;
+                    const ballX = b.body.position.x;
+                    const ballY = b.body.position.y;
+                    const targets = findBallsWithinRange(ballX, ballY, 150, [b], null);
+                    targets.forEach((ball2) => {
+                        const ball2X = ball2.body.position.x;
+                        const ball2Y = ball2.body.position.y;
+                        const distance = getDistance(ballX, ballY, ball2X, ball2Y);
+                        const velocity = (150 - distance)*(150-distance)/200000;
+                        const angle = getAngle(ballX, ballY, ball2X, ball2Y);
+                        const force = polarToCartesian(0, 0, velocity, angle);
+                        Matter.Body.applyForce( ball2.body, {x: ball2X, y: ball2Y}, force );
+                    });
+                }
+
+            },
             ATTACK: {
                 name:"ATTACK",
                 onAdd: (me) => {
@@ -158,7 +196,7 @@
                     //console.log("Attack - collided");
                     //console.log("me",me);
                     //console.log("other",other);
-                    if (other) setTimeout( function() {removeBall(other); }, 20 );
+                    if (other) removeBall(other);
                     else (console.log("wall"));
                 },
                 onStop : (me) => {
@@ -206,12 +244,9 @@
                         updateButtons();
 
                         const checkForStopInterval = setInterval(function() {
-                            console.log("going "+ball.body.velocity, ball.body);
                             if ( Math.abs(ball.body.velocity.x)+Math.abs(ball.body.velocity.y)<.1 ) {
-                                console.log("done", ball);
                                 ball.modifiers.forEach( m => {
-                                    console.log("m",m);
-                                    m.type.onStop(m);
+                                    if (m.type.onStop) m.type.onStop(m);
                                 });
                                 clearInterval(checkForStopInterval);
                             };
@@ -267,7 +302,7 @@
                         player.mana -= buttonSelected.mode.cost;
                         const ballX = ball.body.position.x;
                         const ballY = ball.body.position.y;
-                        const targets = findBallsWithinRange(ballX, ballY, 120, [ball], null)
+                        const targets = findBallsWithinRange(ballX, ballY, 120, [ball], null);
                         targets.forEach((ball2) => {
                             const ball2X = ball2.body.position.x;
                             const ball2Y = ball2.body.position.y;
@@ -285,7 +320,6 @@
                 name: "FIRE",
                 cost: 1,
                 onTouchStart: () => { 
-                    console.log("fire "+ball); 
                     if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     setBall();      
                     const m = {
@@ -294,6 +328,21 @@
                         tickCounter: 0,
                     }
                     m.type.onAdd(m);
+                    ball.modifiers.push(m);
+                },
+            },
+            TIDE: {
+                name: "TIDE",
+                cost: 2,
+                onTouchStart: () => { 
+                    if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
+                    setBall();      
+                    const m = {
+                        type: MODIFIER_TYPES.REPEL,
+                        target: ball,
+                        turnCounter: 0,
+                    }
+                    if (m.type.onAdd) m.type.onAdd(m);
                     ball.modifiers.push(m);
                 },
             },
@@ -323,7 +372,7 @@
                         isUsed: false,
                     },
                     SPELL0: {
-                        mode: MODES.SPLASH,
+                        mode: MODES.TIDE,
                         element: $("#mode2-p0"),
                         isUsed: false,
                     },
@@ -362,7 +411,7 @@
                         isUsed: false,
                     },
                     SPELL0: {
-                        mode: MODES.SPLASH,
+                        mode: MODES.TIDE,
                         element: $("#mode2-p1"),
                         isUsed: false,
                     },
@@ -406,10 +455,18 @@
         Matter.Events.on(engine, "collisionStart", function(e) {
             e.pairs.forEach( pair => {
                 if (pair.bodyA.ball) pair.bodyA.ball.modifiers.forEach( m => {
-                    m.type.onCollision(pair.bodyA.ball, pair.bodyB.ball);
+                    if (m.type.onCollision) {
+                        setTimeout( function() {
+                            m.type.onCollision(pair.bodyA.ball, pair.bodyB.ball);
+                        }, BOARD.COLLISION_DELAY );
+                    }   
                 });
                 if (pair.bodyB.ball) pair.bodyB.ball.modifiers.forEach( m => {
-                    m.type.onCollision(pair.bodyB.ball, pair.bodyA.ball);
+                    if (m.type.onCollision) {
+                        setTimeout( function() {
+                            m.type.onCollision(pair.bodyB.ball, pair.bodyA.ball);
+                        }, BOARD.COLLISION_DELAY );
+                    }   
                 });
             })
         })
@@ -637,11 +694,10 @@
 
     function removeBall(ball){
         Matter.World.remove(engine.world, ball.body);
-        ball.graphic.remove();
         players.forEach( (player) => {
             player.balls.forEach( (ball2, ballIndex) => {
                 if (ball2==ball) {
-                    player.balls[ballIndex] = null;
+                    player.balls.splice(ballIndex, 1);
                 }
             });
         });
@@ -650,7 +706,7 @@
     function removeModifier(b, modifier){
         b.modifiers.forEach( (m, mIndex) => {
             if (m==modifier){
-                m.type.onRemove(modifier);
+                if (m.type.onRemove) m.type.onRemove(modifier);
                 b.modifiers.splice(mIndex, 1);
             }
         })
@@ -707,18 +763,10 @@
             }
             
         });
-        // if (options.includeLaunchPoint){
-        //     const distance = getDistance(options.x, options.y, player.launchX, player.launchY );
-        //     if (distance < minDistance-BOARD.EXISTING_BALL_PREFERRED_MARGIN) {
-        //         output = null;
-        //     }
-        // }
         return output;
     }
 
 // ================ UTILITY FUNCTIONS ====================
-
-
 
     function getTouchDistance(){
         const ballPos = ball.body.position;
