@@ -29,7 +29,6 @@ body {
 }
 
 #background {
-  background-color: #999999;
   z-index: 1;
   pointer-events: none;
 }
@@ -203,6 +202,13 @@ body {
   display: none;
 }
 
+#background {
+  background: url("../img/floor1.jpg");
+  background-repeat: repeat;
+  z-index: 1;
+  pointer-events: none;
+}
+
 .goal {
   border-radius: 999px;
   position: absolute;
@@ -210,11 +216,13 @@ body {
 }
 
 #goal0 {
-  border: #FFFFFF dotted 3px;
+  border: #df8c20 dotted 3px;
+  opacity: 0.5;
 }
 
 #goal1 {
-  border: #000000 dotted 3px;
+  border: #680a6b dotted 3px;
+  opacity: 1;
 }
 
 #balls .ball {

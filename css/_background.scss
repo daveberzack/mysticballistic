@@ -1,11 +1,21 @@
+
+#background {
+	background: url("../img/floor1.jpg");
+    background-repeat: repeat;
+    z-index: 1;
+    pointer-events: none;
+}
+
 .goal {
     border-radius: 999px;
     position: absolute;
     overflow: hidden;
 }
 #goal0 {
-    border: #FFFFFF dotted 3px;
+    border: #df8c20 dotted 3px;
+    opacity: .5;
 }
 #goal1 {
-    border: #000000 dotted 3px;
+    border: #680a6b dotted 3px;
+    opacity: 1;
 }

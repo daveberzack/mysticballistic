@@ -14,6 +14,8 @@
         effectsContext = effectsCanvas.getContext("2d");
     }
 
+    const launchParticles = [];
+    let particleAddCounter = 0;
     function redrawEffects() {
         effectsContext.clearRect(0, 0, canvas.width, canvas.height);
         
@@ -47,18 +49,25 @@
                     effectsContext.stroke();
                 }
             }
+            
         }
-
+        
         //all balls with modifiers 
         players.forEach( (p) => {
             p.balls.forEach( (b) => {
                 b.modifiers.forEach( (m) => {
                     if (m.type.drawEffect) m.type.drawEffect(m, effectsContext);
                 })
+
+                bX = b.body.position.x;
+                bY = b.body.position.y;
+                var img = document.getElementById("ball"+p.index);
+                effectsContext.drawImage(img,bX-16,bY-16,35,35);
             });
         });
+        
     }
-
+    
 // ================ INITIALIZE GAME ====================
 	function init() {
         initValues();
@@ -67,7 +76,7 @@
         initTouchHandlers();
         startTurn();
         initEffects();
-        setInterval(tick, 20);
+        setInterval(tick, 10);
 	}
     function tick() {
         triggerModifiersForTick();
@@ -155,19 +164,19 @@
                     effectsContext.strokeStyle = "#0099FFCC";
                     effectsContext.setLineDash([5,10]);
                     effectsContext.beginPath();
-                    effectsContext.arc(bX, bY, 150, 0, 2 * Math.PI, false);
+                    effectsContext.arc(bX, bY, 120, 0, 2 * Math.PI, false);
                     effectsContext.stroke();
                 },
                 onTick: (me) => {
                     b = me.target;
                     const ballX = b.body.position.x;
                     const ballY = b.body.position.y;
-                    const targets = findBallsWithinRange(ballX, ballY, 150, [b], null);
+                    const targets = findBallsWithinRange(ballX, ballY, 120, [b], null);
                     targets.forEach((ball2) => {
                         const ball2X = ball2.body.position.x;
                         const ball2Y = ball2.body.position.y;
                         const distance = getDistance(ballX, ballY, ball2X, ball2Y);
-                        const velocity = (150 - distance)*(150-distance)/200000;
+                        const velocity = (120 - distance)*(120-distance)/600000;
                         const angle = getAngle(ballX, ballY, ball2X, ball2Y);
                         const force = polarToCartesian(0, 0, velocity, angle);
                         Matter.Body.applyForce( ball2.body, {x: ball2X, y: ball2Y}, force );
@@ -676,13 +685,12 @@
 	}
 
     function addBall(player){
-        const color = player.ballColor; 
         let body = Matter.Bodies.circle(player.launchX, player.launchY, BOARD.BALL_RADIUS, {
 			isStatic: false,
 			restitution: 1,
             friction: 0,
             render: {
-                fillStyle: color,
+                fillStyle: "#00000000"
             },
 		});
 		Matter.World.add(engine.world, body);
