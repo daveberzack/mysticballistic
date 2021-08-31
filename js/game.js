@@ -2,20 +2,39 @@
 	let canvas, engine, render, runner;
     let COLOR, BOARD, MODES, MODIFIER_TYPES;
     let players, player, ball, touchX, touchY, isTouchActive, turnCount, buttonSelected;
-    let effectsCanvas, effectsContext, w, h;
+    let effectsCanvas, effectsContext, w, h, touchCounter=0;
 // ================ DRAW EFFECTS ====================
 
     function initEffects(){
-        effectsCanvas = document.getElementById("effects");
         w = $("#effects").width();
         h = $("#effects").height();
+        effectsCanvas = document.getElementById("effects");
         effectsCanvas.width = w;
         effectsCanvas.height = h;
         effectsContext = effectsCanvas.getContext("2d");
     }
 
-    const launchParticles = [];
-    let particleAddCounter = 0;
+    let launchParticles = [];
+    let distance = 0;
+    let angle = 0;
+
+    const IMAGES = {
+        BALL0: document.getElementById("ball0"),
+        BALL1: document.getElementById("ball1"),
+        BLURRED_DOTS: [
+            document.getElementById("blurred-dots0"),
+            document.getElementById("blurred-dots1"),
+            document.getElementById("blurred-dots2"),
+            document.getElementById("blurred-dots3"),
+            document.getElementById("blurred-dots4"),
+            document.getElementById("blurred-dots5"),
+            document.getElementById("blurred-dots6"),
+            document.getElementById("blurred-dots7"),
+            document.getElementById("blurred-dots8"),
+            document.getElementById("blurred-dots9"),
+        ]
+    }
+
     function redrawEffects() {
         effectsContext.clearRect(0, 0, canvas.width, canvas.height);
         
@@ -23,21 +42,27 @@
         if (ball && buttonSelected){
             const ballX = ball.body.position.x;
             const ballY = ball.body.position.y;
-            const angle  = getTouchAngle();
-            const distance = Math.min(getTouchDistance(), BOARD.MAX_PULLBACK_DISTANCE);
+            angle  = getTouchAngle();
+            distance = Math.min(getTouchDistance(), BOARD.MAX_PULLBACK_DISTANCE);
 
             const effect = buttonSelected.mode.effect;
             if (effect){
+
                 if (isTouchActive && effect.type==EFFECT_TYPES.AIM){
-                    const lineEnd = polarToCartesian(ballX, ballY, distance, angle);
-                    const color = effect.color || player.ballColor;
-                    effectsContext.lineWidth = effect.lineWidth;
-                    effectsContext.strokeStyle = color;
-                    effectsContext.setLineDash(effect.lineDash);
-                    effectsContext.beginPath();
-                    effectsContext.moveTo(ballX, ballY);
-                    effectsContext.lineTo(lineEnd.x, lineEnd.y);
-                    effectsContext.stroke();
+
+                    if (touchCounter%1==0){
+                        
+                        const dx = (Math.random()-.5);
+                        const dy = (Math.random()-.5);
+                        const newParticle = {
+                            x: ballX + dx*40,
+                            y: ballY + dy*40,
+                            r: (3-(Math.abs(dx)+Math.abs(dy)))*15,
+                            v: Math.floor(Math.random()*10),
+                        }
+                        launchParticles.push(newParticle);
+                    }
+                    touchCounter++;
                 }
                 else if (isTouchActive && effect.type==EFFECT_TYPES.AREA){
                     const color = effect.color || player.ballColor;
@@ -48,9 +73,23 @@
                     effectsContext.arc(ballX, ballY, effect.radius, 0, 2 * Math.PI, false);
                     effectsContext.stroke();
                 }
+
             }
-            
         }
+
+        launchParticles.forEach( p => {
+            const newPosition = polarToCartesian(p.x, p.y, distance/50, angle);
+            p.x = newPosition.x;
+            p.y = newPosition.y;
+            p.r = Math.max( .1, p.r - .7);
+
+            effectsContext.drawImage(IMAGES.BLURRED_DOTS[p.v],p.x-p.r/2,p.y-p.r/2,p.r,p.r);
+            if (p.r<1) {
+                launchParticles.forEach( (p2, p2Index) => {
+                    if (p == p2) launchParticles.splice(p2Index, 1);
+                })
+            }
+        })
         
         //all balls with modifiers 
         players.forEach( (p) => {
@@ -61,8 +100,7 @@
 
                 bX = b.body.position.x;
                 bY = b.body.position.y;
-                var img = document.getElementById("ball"+p.index);
-                effectsContext.drawImage(img,bX-16,bY-16,35,35);
+                effectsContext.drawImage(IMAGES["BALL"+p.index],bX-16,bY-16,35,35);
             });
         });
         

@@ -31,15 +31,19 @@ body {
     pointer-events: none;
 }
 #effects {
+    z-index: 3;
+    pointer-events: none;
+}
+#blurred-effects {
     z-index: 2;
     pointer-events: none;
 }
 #canvas {
 	overflow: hidden;
     transform: translateY(0);
-    z-index: 3;
+    z-index: 4;
 }
 #overlay {
-    z-index: 4;
+    z-index: 5;
     pointer-events: none;
 }
