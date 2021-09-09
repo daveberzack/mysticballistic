@@ -14,7 +14,7 @@
         effectsContext = effectsCanvas.getContext("2d");
     }
 
-    let launchParticles = [];
+    let trailParticles = [];
     let distance = 0;
     let angle = 0;
 
@@ -32,7 +32,29 @@
             document.getElementById("blurred-dots7"),
             document.getElementById("blurred-dots8"),
             document.getElementById("blurred-dots9"),
-        ]
+            document.getElementById("blurred-dots10"),
+            document.getElementById("blurred-dots11"),
+            document.getElementById("blurred-dots12"),
+            document.getElementById("blurred-dots13"),
+            document.getElementById("blurred-dots14"),
+            document.getElementById("blurred-dots15"),
+            document.getElementById("blurred-dots16"),
+            document.getElementById("blurred-dots17"),
+            document.getElementById("blurred-dots18"),
+            document.getElementById("blurred-dots19"),
+        ],
+        FIRE_DOTS: [
+            document.getElementById("fire-dots0"),
+            document.getElementById("fire-dots1"),
+            document.getElementById("fire-dots2"),
+            document.getElementById("fire-dots3"),
+            document.getElementById("fire-dots4"),
+            document.getElementById("fire-dots5"),
+            document.getElementById("fire-dots6"),
+            document.getElementById("fire-dots7"),
+            document.getElementById("fire-dots8"),
+            document.getElementById("fire-dots9"),
+        ],
     }
 
     function redrawEffects() {
@@ -50,17 +72,18 @@
 
                 if (isTouchActive && effect.type==EFFECT_TYPES.AIM){
 
-                    if (touchCounter%1==0){
-                        
+                    if (touchCounter%6==0){
                         const dx = (Math.random()-.5);
                         const dy = (Math.random()-.5);
                         const newParticle = {
-                            x: ballX + dx*40,
-                            y: ballY + dy*40,
-                            r: (3-(Math.abs(dx)+Math.abs(dy)))*15,
-                            v: Math.floor(Math.random()*10),
+                            x: ballX + dx*30,
+                            y: ballY + dy*30,
+                            r: (3-(Math.abs(dx)+Math.abs(dy)))*25,
+                            v: Math.floor(Math.random()*20),
+                            s: Math.random()/2+.5
                         }
-                        launchParticles.push(newParticle);
+                        trailParticles.push(newParticle);
+
                     }
                     touchCounter++;
                 }
@@ -77,16 +100,26 @@
             }
         }
 
-        launchParticles.forEach( p => {
-            const newPosition = polarToCartesian(p.x, p.y, distance/50, angle);
+        trailParticles.forEach( p => {
+            const newPosition = polarToCartesian(p.x, p.y, distance*p.s/70, angle);
             p.x = newPosition.x;
             p.y = newPosition.y;
             p.r = Math.max( .1, p.r - .7);
 
-            effectsContext.drawImage(IMAGES.BLURRED_DOTS[p.v],p.x-p.r/2,p.y-p.r/2,p.r,p.r);
+            let isAttack = false;
+            ball.modifiers.forEach( m => {
+                if (m.type.name == "ATTACK") isAttack = true;
+            })
+            if (isAttack){
+                if (p.v>9) p.v -= 10;
+                effectsContext.drawImage(IMAGES.FIRE_DOTS[p.v],p.x-p.r/2,p.y-p.r/2,p.r,p.r);
+            }
+            else {
+                effectsContext.drawImage(IMAGES.BLURRED_DOTS[p.v],p.x-p.r/2,p.y-p.r/2,p.r,p.r);
+            }
             if (p.r<1) {
-                launchParticles.forEach( (p2, p2Index) => {
-                    if (p == p2) launchParticles.splice(p2Index, 1);
+                trailParticles.forEach( (p2, p2Index) => {
+                    if (p == p2) trailParticles.splice(p2Index, 1);
                 })
             }
         })
@@ -141,7 +174,7 @@
             GOAL_RADIUS: 125,
             EXISTING_BALL_PREFERRED_MARGIN: 10,
             MAX_PULLBACK_DISTANCE: 200,
-            MAX_LAUNCH_VELOCITY: 30,
+            MAX_LAUNCH_VELOCITY: 15,
             WALL_PADDING: 30,
             MAX_MANA: 5,
             MANA_PER_ROUND: 4,
@@ -214,7 +247,7 @@
                         const ball2X = ball2.body.position.x;
                         const ball2Y = ball2.body.position.y;
                         const distance = getDistance(ballX, ballY, ball2X, ball2Y);
-                        const velocity = (120 - distance)*(120-distance)/600000;
+                        const velocity = (120 - distance)*(120-distance)/1800000;
                         const angle = getAngle(ballX, ballY, ball2X, ball2Y);
                         const force = polarToCartesian(0, 0, velocity, angle);
                         Matter.Body.applyForce( ball2.body, {x: ball2X, y: ball2Y}, force );
@@ -298,6 +331,47 @@
                                 clearInterval(checkForStopInterval);
                             };
                         }, 100);
+
+                        for (let i=0; i<10; i++){
+                            const ballX = ball.body.position.x;
+                            const ballY = ball.body.position.y;
+                            const dx = (Math.random()-.5);
+                            const dy = (Math.random()-.5);
+                            const newParticle = {
+                                x: ballX + dx*80* Math.sqrt(pullbackPercent),
+                                y: ballY + dy*80* Math.sqrt(pullbackPercent),
+                                r: (3-(Math.abs(dx)+Math.abs(dy)))*30*Math.sqrt(pullbackPercent),
+                                v: Math.floor(Math.random()*20),
+                                s: 0
+                            }
+                            trailParticles.push(newParticle);
+                        }
+                        
+
+                        //do trail
+                        let trailCounter=0;
+                        const trailInterval = setInterval(function() {
+                            let ballVelocity = Math.abs(ball.body.velocity.x)+Math.abs(ball.body.velocity.y);
+                            ballVelocity = Math.min(20, ballVelocity);
+                            if (trailCounter % Math.ceil(20-ballVelocity)==0){
+                                const ballX = ball.body.position.x;
+                                const ballY = ball.body.position.y;
+                                const dx = (Math.random()-.5);
+                                const dy = (Math.random()-.5);
+                                const newParticle = {
+                                    x: ballX + dx*30,
+                                    y: ballY + dy*30,
+                                    r: (3-(Math.abs(dx)+Math.abs(dy)))*15,
+                                    v: Math.floor(Math.random()*20),
+                                    s: 0
+                                }
+                                trailParticles.push(newParticle);
+                            }
+                            if ( ballVelocity <.5 ) {
+                                clearInterval(trailInterval);
+                            };
+                        }, 40);
+                        
                     }
                 },
             },
@@ -309,7 +383,7 @@
                     player.mana -= buttonSelected.mode.cost;
                     addBall(player);
                     deactivateButton();
-                    buttonSelected = player.buttons.LAUNCH;
+                    if (!player.buttons.LAUNCH.isUsed) buttonSelected = player.buttons.LAUNCH;
                     updateButtons();
                 },
             },
@@ -326,6 +400,7 @@
                     }
                     m.type.onAdd(m);
                     ball.modifiers.push(m);
+                    deactivateButton();
                 },
             },
             SPLASH: {
@@ -342,6 +417,7 @@
                     if (!buttonSelected || buttonSelected.mode.cost > player.mana) return;
                     setBall();
                     isTouchActive = true;
+                    deactivateButton();
                 },
                 onTouchEnd: () => {
                     isTouchActive = false;
@@ -376,6 +452,8 @@
                     }
                     m.type.onAdd(m);
                     ball.modifiers.push(m);
+                    deactivateButton();
+                    if (!player.buttons.LAUNCH.isUsed) buttonSelected = player.buttons.LAUNCH;
                 },
             },
             TIDE: {
@@ -391,6 +469,7 @@
                     }
                     if (m.type.onAdd) m.type.onAdd(m);
                     ball.modifiers.push(m);
+                    deactivateButton();
                 },
             },
         }
