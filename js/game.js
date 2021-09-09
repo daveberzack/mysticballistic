@@ -156,22 +156,20 @@
 
     function initValues() {
         COLOR = {
-            WALL: "#666666",
+            WALL: "#FFFFFF66",
             BALL0: "#FFFFFF",
             BALL1: "#000000",
-            WALL0: "#FFFFFF",
-            WALL1: "#000000",
         };
 
         BOARD = {
             HEIGHT: $(window).innerHeight(),
             WIDTH: $(window).innerWidth(),
             HORIZONTAL_MARGIN: 3,
-            CONTROL_WIDTH: 80,
-            CONTROL_HEIGHT: 550,
+            CONTROL_WIDTH: 126,
+            CONTROL_HEIGHT: 660,
             VERTICAL_MARGIN: 3,
             BALL_RADIUS: 15,
-            GOAL_RADIUS: 125,
+            GOAL_RADIUS: 138,
             EXISTING_BALL_PREFERRED_MARGIN: 10,
             MAX_PULLBACK_DISTANCE: 200,
             MAX_LAUNCH_VELOCITY: 15,
@@ -479,8 +477,8 @@
                 index: 0,
                 name: "White",
                 ballColor: COLOR.BALL0,
-                launchX: 100,
-                launchY: 200,
+                launchX: 168,
+                launchY: 166,
                 balls: [],
                 goals: [],
                 score: 0,
@@ -518,8 +516,8 @@
                 index: 1,
                 name: "Black",
                 ballColor: COLOR.BALL1,
-                launchX: BOARD.WIDTH-100,
-                launchY: BOARD.HEIGHT-200,
+                launchX: BOARD.WIDTH-165,
+                launchY: BOARD.HEIGHT-183,
                 balls: [],
                 goals: [],
                 score: 0,
@@ -605,36 +603,24 @@
 			addWall(BOARD.WIDTH-BOARD.HORIZONTAL_MARGIN, 0, BOARD.HORIZONTAL_MARGIN+BOARD.WALL_PADDING, BOARD.HEIGHT, COLOR.WALL), //right
 			addWall(0, -BOARD.WALL_PADDING, BOARD.WIDTH, BOARD.VERTICAL_MARGIN+BOARD.WALL_PADDING, COLOR.WALL), //top
 			addWall(0, BOARD.HEIGHT-BOARD.VERTICAL_MARGIN, BOARD.WIDTH, BOARD.VERTICAL_MARGIN+BOARD.WALL_PADDING, COLOR.WALL), //bottom
-		    addWall(BOARD.WIDTH-BOARD.CONTROL_WIDTH, 0, BOARD.CONTROL_WIDTH, BOARD.CONTROL_HEIGHT, COLOR.WALL0), //p0 controls
-			addWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, BOARD.CONTROL_HEIGHT, COLOR.WALL1), //p1 controls
-            addRoundWall(BOARD.WIDTH, BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, COLOR.WALL0),
-            addRoundWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, COLOR.WALL1),
-            //addWall(-150, 450, 500, 25, COLOR.WALL, 45), //obstacle 1
-            //addWall(BOARD.WIDTH-350, BOARD.HEIGHT-450, 500, 25, COLOR.WALL, 45), //obstacle 1
+		    addWall(BOARD.WIDTH-BOARD.CONTROL_WIDTH, 0, BOARD.CONTROL_WIDTH, BOARD.CONTROL_HEIGHT), //p0 controls
+			addWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH, BOARD.CONTROL_HEIGHT), //p1 controls
+            addRoundWall(BOARD.WIDTH, BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH),
+            addRoundWall(0, BOARD.HEIGHT-BOARD.CONTROL_HEIGHT, BOARD.CONTROL_WIDTH),
+            addWall(-90, 385, 600, 25, null, 68), //obstacle 1
+            addWall(BOARD.WIDTH-520, BOARD.HEIGHT-410, 600, 25, null, 68), //obstacle 1
 
         ]);
 
         players[0].goals.push({
-            x: BOARD.WIDTH/4,
+            x: BOARD.WIDTH *.333,
             y: BOARD.HEIGHT/2,
             r: BOARD.GOAL_RADIUS
         })
         players[1].goals.push({
-            x: BOARD.WIDTH*3/4,
+            x: BOARD.WIDTH *.67,
             y: BOARD.HEIGHT/2,
             r: BOARD.GOAL_RADIUS
-        })
-        $("#goal0").css({
-            "top":BOARD.HEIGHT/2 - BOARD.GOAL_RADIUS,
-            "left":BOARD.WIDTH/4 - BOARD.GOAL_RADIUS,
-            "width":BOARD.GOAL_RADIUS*2,
-            "height":BOARD.GOAL_RADIUS*2,
-        })
-        $("#goal1").css({
-            "top":BOARD.HEIGHT/2 - BOARD.GOAL_RADIUS,
-            "right":BOARD.WIDTH/4 - BOARD.GOAL_RADIUS,
-            "width":BOARD.GOAL_RADIUS*2,
-            "height":BOARD.GOAL_RADIUS*2,
         })
     }
 
@@ -785,6 +771,7 @@
 // ================ MANAGING PHYSICS ====================
 
 	function addWall(x, y, width, height, color, rotation) {
+        if (!color) color = "#00000000";
 		const newWall = Matter.Bodies.rectangle(x+width/2, y+height/2, width, height,  {
 			isStatic: true,
 			render: { visible: false },
@@ -795,6 +782,7 @@
 	}
 
 	function addRoundWall(x, y, r, color) {
+        if (!color) color = "#00000000";
 		return Matter.Bodies.circle(x, y, r, {
 			isStatic: true,
 			render: { fillStyle: color }

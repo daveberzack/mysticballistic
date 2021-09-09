@@ -7,8 +7,6 @@
     <body>
         <div id="all">
             <div id="background">
-                <div id="goal0" class="goal"></div>
-                <div id="goal1" class="goal"></div>
             </div>
             <canvas id="effects"></canvas>
             <div id="container">
@@ -92,15 +90,19 @@
 
 <!-- TO DO
 
+    integrate bg graphics
+
     refactor effects drawing to effect objects
 
     refactor balls out of players (add owner property)
 
     refactor player, ball, mode, effect, modifier as classes
 
-
     launch neutral projectile with ongoing, aura, or stop effects
-    balls have a damage amount (2 damage total to destroy a ball)
+
+    balls have a health amount (2 damage total to destroy a ball)
+
+    balls can ghost, not collide with other balls or obstacle walls
 
     other spells...
 
