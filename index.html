@@ -1,58 +1,84 @@
 <!doctype html>
 <html>
     <head>
-        <title>Ballistic Mystic</title>
+        <title>Mystic Ballistic</title>
         <link rel="stylesheet" href="css/styles.css">
     </head>
     <body>
         <div id="all">
             <div id="background">
-                <div id="goal"></div>
             </div>
+            <canvas id="effects"></canvas>
             <div id="container">
                 <canvas id="canvas"></canvas>
             </div>
-            <div id="balls">
-            </div>
             <div id="overlay">
-                <div id="controls_0" class= "controls">
-                    <div class="button launch b0" data-player="0" data-action="0" data-ball="0"></div>
-                    <div class="button launch b1" data-player="0" data-action="0" data-ball="1"></div>
-                    <div class="button launch b2" data-player="0" data-action="0" data-ball="2"></div>
-                    <div class="button launch b3" data-player="0" data-action="0" data-ball="3"></div>
-                    <div class="button trigger b0" data-player="0" data-action="1" data-ball="0"></div>
-                    <div class="button trigger b1" data-player="0" data-action="1" data-ball="1"></div>
-                    <div class="button trigger b2" data-player="0" data-action="1" data-ball="2"></div>
-                    <div class="button trigger b3" data-player="0" data-action="1" data-ball="3"></div>
-                    <div id="joystick_0" class="joystick" data-player="0"></div>
-                    <svg class="joystickCooldown">
-                        <path id="cooldownPath0" fill="none" stroke="#FFFFFF44" stroke-width="50" />
-                    </svg>
-                    <div id="score_0" class="score">
-                        <div class="bar"></div>
+                <div id="controls">
+                    <div id="player0" class="player">
+                        <div id="score0" class="score text">5</div>
+                        <div id="mana0" class="mana text">2</div>
+                        <div id="mode0-p0" class="button mode-button mode-button0" data-index="0" data-name="ADD" data-player="0"></div>
+                        <div id="mode1-p0" class="button mode-button mode-button1" data-index="1" data-name="LAUNCH" data-player="0"></div>
+                        <div id="mode2-p0" class="button mode-button mode-button2" data-index="2" data-name="SPELL0" data-player="0"></div>
+                        <div id="mode3-p0" class="button mode-button mode-button3" data-index="3" data-name="SPELL1" data-player="0"></div>
+                        <div id="mode4-p0" class="button mode-button mode-button4" data-index="4" data-name="SPELL2" data-player="0"></div>
+                        <div id="done0" class="button done-button" data-player="0"></div>
+                        <h1 class="message"></h1>
+                    </div>
+                    <div id="player1" class="player">
+                        <div id="score1" class="score text">4</div>
+                        <div id="mana1" class="mana text">2</div>
+                        <div id="mode0-p1" class="button mode-button mode-button0" data-index="0" data-name="ADD" data-player="1"></div>
+                        <div id="mode1-p1" class="button mode-button mode-button1" data-index="1" data-name="LAUNCH" data-player="1"></div>
+                        <div id="mode2-p1" class="button mode-button mode-button2" data-index="2" data-name="SPELL0" data-player="1"></div>
+                        <div id="mode3-p1" class="button mode-button mode-button3" data-index="3" data-name="SPELL1" data-player="1"></div>
+                        <div id="mode4-p1" class="button mode-button mode-button4" data-index="4" data-name="SPELL2" data-player="1"></div>
+                        <div id="done1" class="button done-button" data-player="1"></div>
+                        <h1 class="message"></h1>
                     </div>
                 </div>
-                <div id="controls_1" class="controls">
-                    <div class="button launch b0" data-player="1" data-action="0" data-ball="0"></div>
-                    <div class="button launch b1" data-player="1" data-action="0" data-ball="1"></div>
-                    <div class="button launch b2" data-player="1" data-action="0" data-ball="2"></div>
-                    <div class="button launch b3" data-player="1" data-action="0" data-ball="3"></div>
-                    <div class="button trigger b0" data-player="1" data-action="1" data-ball="0"></div>
-                    <div class="button trigger b1" data-player="1" data-action="1" data-ball="1"></div>
-                    <div class="button trigger b2" data-player="1" data-action="1" data-ball="2"></div>
-                    <div class="button trigger b3" data-player="1" data-action="1" data-ball="3"></div>
-                    <div id="joystick_1" class="joystick" data-player="1"></div>
-                    <svg class="joystickCooldown">
-                        <path id="cooldownPath1" fill="none" stroke="#00000044" stroke-width="50" />
-                    </svg>
-                    <div id="score_1" class="score">
-                        <div class="bar"></div>
-                    </div>
-                </div>
-                <h1 id="message"></h1>
                 <p id="debug"></p>
             </div>
         </div>
+
+
+        <div id="images">
+            <img id="ball0" src="img/ball0.png"/>
+            <img id="ball1" src="img/ball1.png"/>
+            <img id="blurred-dots0" src="img/blurred-dots0.png"/>
+            <img id="blurred-dots1" src="img/blurred-dots1.png"/>
+            <img id="blurred-dots2" src="img/blurred-dots2.png"/>
+            <img id="blurred-dots3" src="img/blurred-dots3.png"/>
+            <img id="blurred-dots4" src="img/blurred-dots4.png"/>
+            <img id="blurred-dots5" src="img/blurred-dots5.png"/>
+            <img id="blurred-dots6" src="img/blurred-dots6.png"/>
+            <img id="blurred-dots7" src="img/blurred-dots7.png"/>
+            <img id="blurred-dots8" src="img/blurred-dots8.png"/>
+            <img id="blurred-dots9" src="img/blurred-dots9.png"/>
+            <img id="blurred-dots10" src="img/blurred-dots10.png"/>
+            <img id="blurred-dots11" src="img/blurred-dots11.png"/>
+            <img id="blurred-dots12" src="img/blurred-dots12.png"/>
+            <img id="blurred-dots13" src="img/blurred-dots13.png"/>
+            <img id="blurred-dots14" src="img/blurred-dots14.png"/>
+            <img id="blurred-dots15" src="img/blurred-dots15.png"/>
+            <img id="blurred-dots16" src="img/blurred-dots16.png"/>
+            <img id="blurred-dots17" src="img/blurred-dots17.png"/>
+            <img id="blurred-dots18" src="img/blurred-dots18.png"/>
+            <img id="blurred-dots19" src="img/blurred-dots19.png"/>
+
+
+            <img id="fire-dots0" src="img/fire-dots0.png"/>
+            <img id="fire-dots1" src="img/fire-dots1.png"/>
+            <img id="fire-dots2" src="img/fire-dots2.png"/>
+            <img id="fire-dots3" src="img/fire-dots3.png"/>
+            <img id="fire-dots4" src="img/fire-dots4.png"/>
+            <img id="fire-dots5" src="img/fire-dots5.png"/>
+            <img id="fire-dots6" src="img/fire-dots6.png"/>
+            <img id="fire-dots7" src="img/fire-dots7.png"/>
+            <img id="fire-dots8" src="img/fire-dots8.png"/>
+            <img id="fire-dots9" src="img/fire-dots9.png"/>
+        </div>
+
         <script
   src="https://code.jquery.com/jquery-3.6.0.min.js"
   integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
@@ -64,18 +90,51 @@
 
 <!-- TO DO
 
-    fix fire effect
-    make aim line length absolute, basedon max velocity
+    integrate bg graphics
 
+    refactor effects drawing to effect objects
 
+    refactor balls out of players (add owner property)
 
+    refactor player, ball, mode, effect, modifier as classes
 
-    consolidate/separate aura rings from balls
+    launch neutral projectile with ongoing, aura, or stop effects
+
+    balls have a health amount (2 damage total to destroy a ball)
+
+    balls can ghost, not collide with other balls or obstacle walls
+
+    other spells...
+
+    create a deck, which gets cycled through randomly
+
+later:
+    scrolling if near edge
+    environmental hazards
     refactor
+    spell delay with graphic
 
 
-    later...
-    one-off spells
-    add bg, overlay, sprite graphics
-    add music
+spell ideas: 
+    bank then hit to destroy
+    destroy self and all in range
+    destroy self and nearest within range, then nearest from that....
+    make all nearby balls unselectable on next turn
+    launch a body
+    create a cluster of bodies
+    launch randomly moving bodies
+    generate mana (generate 1 if ball is alone)
+    teleport ball
+    fire tracers, teleport to last one
+    grapple - connect to another ball or wall
+    grow - make bigger, heavier
+    fire a projectile that triggers and effect when it hits a ball
+    ...swap locations
+    change global velocity/friction during this turn or next turn
+    ghost modifier (does not collide with anything except outside walls);
+
+
+    wind
+    shadow (hazard)
+    light can destroy shadow
 -->

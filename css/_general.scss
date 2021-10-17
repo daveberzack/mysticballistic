@@ -14,7 +14,7 @@ body {
 	margin: 0;
 	background-color: #999999;
 }
-#all, #container, #background, #overlay, #canvas, #balls {
+#all, #container, #background, #overlay, #canvas, #effects {
     width:$boardWidth;
     height:$boardHeight;
     position: fixed;
@@ -27,18 +27,23 @@ body {
     position: absolute;
 }
 #background {
-	background-color: #999999;
     z-index: 1;
+    pointer-events: none;
+}
+#effects {
+    z-index: 3;
+    pointer-events: none;
+}
+#blurred-effects {
+    z-index: 2;
+    pointer-events: none;
 }
 #canvas {
 	overflow: hidden;
-    border-radius: 8px;
     transform: translateY(0);
-    z-index: 2;
-}
-#balls {
-    z-index: 3;
+    z-index: 4;
 }
 #overlay {
-    z-index: 4;
+    z-index: 5;
+    pointer-events: none;
 }
